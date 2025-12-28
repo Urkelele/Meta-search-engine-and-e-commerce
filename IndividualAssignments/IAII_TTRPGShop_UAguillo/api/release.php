@@ -25,11 +25,10 @@ if (!$item_id || $quantity <= 0) {
 }
 
 // --------------------------------------------------
-// 1. Check current stock
+// 1. Check item exists
 // --------------------------------------------------
 $stmt = $conn->prepare(
-    // Real concurrency-safe stock check
-    "SELECT stock FROM items WHERE id = ? FOR UPDATE"
+    "SELECT id FROM items WHERE id = ?"
 );
 $stmt->bind_param("i", $item_id);
 $stmt->execute();
@@ -41,20 +40,11 @@ if ($result->num_rows === 0) {
     exit;
 }
 
-$item = $result->fetch_assoc();
-
-// Not enough stock
-if ($item['stock'] < $quantity) {
-    http_response_code(409);
-    echo json_encode(["error" => "Not enough stock"]);
-    exit;
-}
-
 // --------------------------------------------------
-// 2. Reserve stock (reduce it)
+// 2. Restore stock
 // --------------------------------------------------
 $stmt = $conn->prepare(
-    "UPDATE items SET stock = stock - ? WHERE id = ?"
+    "UPDATE items SET stock = stock + ? WHERE id = ?"
 );
 $stmt->bind_param("ii", $quantity, $item_id);
 $stmt->execute();
@@ -65,5 +55,5 @@ $stmt->execute();
 echo json_encode([
     "success" => true,
     "item_id" => $item_id,
-    "reserved_quantity" => $quantity
+    "released_quantity" => $quantity
 ]);
