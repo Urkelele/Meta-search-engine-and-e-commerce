@@ -27,6 +27,7 @@ if (!$item_id || $quantity <= 0) {
 // --------------------------------------------------
 // 1. Check current stock
 // --------------------------------------------------
+$conn->begin_transaction();
 $stmt = $conn->prepare(
     // Real concurrency-safe stock check
     "SELECT stock FROM items WHERE id = ? FOR UPDATE"
@@ -46,6 +47,7 @@ $item = $result->fetch_assoc();
 // Not enough stock
 if ($item['stock'] < $quantity) {
     http_response_code(409);
+    $conn->rollback();
     echo json_encode(["error" => "Not enough stock"]);
     exit;
 }
@@ -62,6 +64,7 @@ $stmt->execute();
 // --------------------------------------------------
 // 3. Respond OK
 // --------------------------------------------------
+$conn->commit();
 echo json_encode([
     "success" => true,
     "item_id" => $item_id,
