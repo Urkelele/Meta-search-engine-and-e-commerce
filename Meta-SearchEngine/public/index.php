@@ -1,6 +1,10 @@
+
 <?php
 session_start();
 ?>
+
+<?php require __DIR__ . '/topbar.php'; ?>
+
 <!DOCTYPE html>
 <html>
 <head>

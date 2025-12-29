@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 29-12-2025 a las 17:54:20
+-- Tiempo de generación: 29-12-2025 a las 20:04:46
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -35,6 +35,14 @@ CREATE TABLE `mse_carts` (
   `ia_item_id` int(32) NOT NULL,
   `quantity` int(32) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `mse_carts`
+--
+
+INSERT INTO `mse_carts` (`id`, `user_id`, `ia_name`, `created_at`, `ia_item_id`, `quantity`) VALUES
+(1, 1, 'ttrpg', '2025-12-29', 2, 1),
+(2, 1, 'ttrpg', '2025-12-29', 1, 2);
 
 -- --------------------------------------------------------
 
@@ -73,10 +81,20 @@ CREATE TABLE `mse_order_items` (
 
 CREATE TABLE `mse_users` (
   `id` int(32) NOT NULL,
-  `email` varchar(32) NOT NULL,
-  `password_hash` varchar(32) NOT NULL,
+  `email` varchar(128) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
   `created_at` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `mse_users`
+--
+
+INSERT INTO `mse_users` (`id`, `email`, `password_hash`, `created_at`) VALUES
+(1, '123@gmail.com', '$2y$10$b3h/u5xhZLZn7bMNMoYFy.wWIKq97xjN6IrnAMvaOk2/ADjfVSKaG', '2025-12-29'),
+(2, '1234@gmail.com', '$2y$10$3p.nkNNhDo0DsDaZDqBcGetiMxtHDAo4wOb.D.P3THmZ4YF5hW6fa', '2025-12-29'),
+(3, '12345@gmail.com', '$2y$10$BS/0oB1oppUtNOBjNvt2r.VHYX193QG8kUKVz0oVhcUWbsYeoUb6e', '2025-12-29'),
+(4, '1212@gmail.com', '$2y$10$ZaqBBhWNKnaIQMawM.PG3e.d080vqnPR1dvG2dgJIMSsAXRedliPa', '2025-12-29');
 
 --
 -- Índices para tablas volcadas
@@ -118,7 +136,7 @@ ALTER TABLE `mse_users`
 -- AUTO_INCREMENT de la tabla `mse_carts`
 --
 ALTER TABLE `mse_carts`
-  MODIFY `id` int(32) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(32) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `mse_orders`
@@ -136,7 +154,7 @@ ALTER TABLE `mse_order_items`
 -- AUTO_INCREMENT de la tabla `mse_users`
 --
 ALTER TABLE `mse_users`
-  MODIFY `id` int(32) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(32) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Restricciones para tablas volcadas
