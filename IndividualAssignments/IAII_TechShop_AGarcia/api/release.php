@@ -18,19 +18,19 @@ if ($item_id <= 0) {
 $db->begin_transaction();
 
 try {
-    $stmt = $db->prepare("SELECT available_stock FROM products WHERE product_id = ? FOR UPDATE");
+    $stmt = $db->prepare("SELECT reserved_stock FROM products WHERE product_id = ? FOR UPDATE");
     $stmt->bind_param("i", $item_id);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
 
-    if (!$row || (int)$row['available_stock'] < $qty) {
-        throw new Exception("Not enough stock");
+    if (!$row || (int)$row['reserved_stock'] < $qty) {
+        throw new Exception("Not enough reserved stock to release");
     }
 
     $upd = $db->prepare("
         UPDATE products
-        SET available_stock = available_stock - ?,
-            reserved_stock  = reserved_stock + ?
+        SET available_stock = available_stock + ?,
+            reserved_stock  = reserved_stock - ?
         WHERE product_id = ?
     ");
     $upd->bind_param("iii", $qty, $qty, $item_id);

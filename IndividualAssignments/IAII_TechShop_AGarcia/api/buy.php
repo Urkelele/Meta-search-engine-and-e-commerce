@@ -1,49 +1,61 @@
 <?php
-require_once __DIR__ . '/../DataBaseManagement/DB.php';
-header('Content-Type: application/json; charset=utf-8');
+require_once __DIR__ . "/_auth.php";
+require_api_key();
 
+require_once __DIR__ . "/../DataBaseManagement/DB.php";
 $db = DB::get();
-$data = json_decode(file_get_contents('php://input'), true);
 
-$items = $data['items'] ?? [];
-if (!is_array($items) || count($items) === 0) {
-  echo json_encode(["success" => false, "error" => "No items"]);
-  exit;
+$data = json_decode(file_get_contents("php://input"), true);
+$item_id = (int)($data['item_id'] ?? 0);
+$qty = max(1, (int)($data['quantity'] ?? 1));
+
+if ($item_id <= 0) {
+    http_response_code(400);
+    echo json_encode(["error" => "Missing item_id"]);
+    exit;
 }
+
+$internalUserId = 1; // <-- pon aquí el user_id del usuario interno del MSE en tu IA
 
 $db->begin_transaction();
 
 try {
-  foreach ($items as $it) {
-    $id = (int)($it['id'] ?? 0);
-    $qty = max(1, (int)($it['qty'] ?? 1));  
-
-    // bloquear producto y comprobar reserved
-    $stmt = $db->prepare("SELECT reserved_stock FROM products WHERE product_id = ? FOR UPDATE");
-    $stmt->bind_param("i", $id);
+    // lock product
+    $stmt = $db->prepare("SELECT price, shipping_price, reserved_stock FROM products WHERE product_id = ? FOR UPDATE");
+    $stmt->bind_param("i", $item_id);
     $stmt->execute();
-    $row = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+    $p = $stmt->get_result()->fetch_assoc();
 
-    if (!$row || (int)$row['reserved_stock'] < $qty) {
-      throw new Exception("Not enough reserved stock for product $id");
+    if (!$p || (int)$p['reserved_stock'] < $qty) {
+        throw new Exception("Not enough reserved stock");
     }
 
-    // consumir reserva (vendido)
+    // consume reserved
     $upd = $db->prepare("
-      UPDATE products
-      SET reserved_stock = reserved_stock - ?
-      WHERE product_id = ?
+        UPDATE products
+        SET reserved_stock = reserved_stock - ?
+        WHERE product_id = ?
     ");
-    $upd->bind_param("ii", $qty, $id);
+    $upd->bind_param("ii", $qty, $item_id);
     $upd->execute();
-    $upd->close();
-  }
 
-  $db->commit();
-  echo json_encode(["success" => true]);
+    // create local order
+    $total = ($qty * (float)$p['price']) + ((float)$p['shipping_price']); // shipping una vez
+    $insO = $db->prepare("INSERT INTO orders (user_id, total_price, status, created_at) VALUES (?, ?, 'paid', NOW())");
+    $insO->bind_param("id", $internalUserId, $total);
+    $insO->execute();
+    $orderId = $db->insert_id;
+
+    $insI = $db->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
+    $price = (float)$p['price'];
+    $insI->bind_param("iiid", $orderId, $item_id, $qty, $price);
+    $insI->execute();
+
+    $db->commit();
+    echo json_encode(["order_id" => (string)$orderId, "success" => true]);
 
 } catch (Exception $e) {
-  $db->rollback();
-  echo json_encode(["success" => false, "error" => $e->getMessage()]);
+    $db->rollback();
+    http_response_code(409);
+    echo json_encode(["error" => $e->getMessage()]);
 }
