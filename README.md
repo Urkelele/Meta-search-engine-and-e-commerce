@@ -238,3 +238,39 @@ Aquí sí empieza el proyecto nuevo.
 * Gestiona pedidos
 
 Todo **sin recargar la página**.
+
+🧪 4️⃣ Comprobación de errores (CHECKLIST REAL)
+
+Aquí es donde puedes asegurar nota alta.
+
+🧨 4.1 Errores de autenticación
+
+✔ Entrar a /cart.php sin login → redirige
+✔ Login incorrecto → mensaje de error
+✔ Register con email repetido → error
+
+🧨 4.2 Errores de concurrencia
+
+✔ Dos usuarios reservan el último item
+→ solo uno puede
+✔ El otro recibe 409 Not enough stock
+
+🧨 4.3 Errores de carrito
+
+✔ Add sin login → 401
+✔ Remove item que no es tuyo → 404
+✔ Checkout con carrito vacío → error
+
+🧨 4.4 Errores de IA
+
+✔ IA caída → MSE no se rompe
+✔ IA responde mal → carrito no se guarda
+
+🛡 5️⃣ Seguridad (para dormir tranquilo)
+
+✔ Prepared statements
+✔ Passwords hashed
+✔ API keys privadas
+✔ Validación de input
+✔ Acceso controlado
+✔ Separación IA / MSE
