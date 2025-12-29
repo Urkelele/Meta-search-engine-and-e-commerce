@@ -94,6 +94,7 @@ echo json_encode([
         "name"       => $item['name'],
         "description"=> $item['description'],
         "price"      => (float)$item['price'],
+        "shipping_price" => 0,
         "stock"      => (int)$item['stock'],
         "category"   => $item['category'],
         "image"      => $item['image_path'],
