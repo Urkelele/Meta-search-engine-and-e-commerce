@@ -1,139 +1,140 @@
 <?php
-header("Content-Type: application/json");
-
 session_start();
+header("Content-Type: application/json; charset=utf-8");
 
-require "../includes/database.php";
-$ias = require "../includes/ia_config.php";
+require __DIR__ . "/../includes/db.php";          // $conn (mysqli)
+$ias = require __DIR__ . "/../includes/ia_config.php";
 
-// --------------------------------------------------
-// 1. Authentication
-// --------------------------------------------------
-if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(["error" => "Not authenticated"]);
-    exit;
+$userId = (int)($_SESSION['user']['id'] ?? 0);
+if (!$userId) {
+  http_response_code(401);
+  echo json_encode(["success"=>false,"error"=>"Not logged in"]);
+  exit;
 }
 
-$user_id = $_SESSION['user_id'];
+// pago mock (solo validar que han rellenado)
+$data = json_decode(file_get_contents("php://input"), true) ?: [];
+$card = trim($data['card_number'] ?? '');
+$name = trim($data['card_name'] ?? '');
+$exp  = trim($data['exp'] ?? '');
+$cvv  = trim($data['cvv'] ?? '');
 
-// --------------------------------------------------
-// 2. Get cart items
-// --------------------------------------------------
-$stmt = $conn->prepare(
-    "SELECT id, ia_name, ia_item_id, quantity
-     FROM mse_carts
-     WHERE user_id = ?"
-);
-$stmt->bind_param("i", $user_id);
+if ($card === '' || $name === '' || $exp === '' || $cvv === '') {
+  http_response_code(400);
+  echo json_encode(["success"=>false,"error"=>"Payment information incomplete"]);
+  exit;
+}
+
+// 1) cargar carrito
+$stmt = $conn->prepare("
+  SELECT id, ia_name, ia_item_id, quantity
+  FROM mse_carts
+  WHERE user_id = ?
+  ORDER BY id ASC
+");
+$stmt->bind_param("i", $userId);
 $stmt->execute();
+$cartRes = $stmt->get_result();
 
-$cart_items = $stmt->get_result();
+$cartItems = [];
+while ($r = $cartRes->fetch_assoc()) $cartItems[] = $r;
+$stmt->close();
 
-if ($cart_items->num_rows === 0) {
-    http_response_code(400);
-    echo json_encode(["error" => "Cart is empty"]);
-    exit;
+if (!$cartItems) {
+  http_response_code(409);
+  echo json_encode(["success"=>false,"error"=>"Cart is empty"]);
+  exit;
 }
 
-// --------------------------------------------------
-// 3. Create MSE order
-// --------------------------------------------------
 $conn->begin_transaction();
 
-$stmt = $conn->prepare(
-    "INSERT INTO mse_orders (user_id, status, created_at)
-     VALUES (?, 'paid', NOW())"
-);
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
+try {
+  // 2) crear order en MSE (id autoincrement)
+  $status = "paid";
+  $stmt = $conn->prepare("INSERT INTO mse_orders (user_id, status, created_at) VALUES (?, ?, NOW())");
+  $stmt->bind_param("is", $userId, $status);
+  $stmt->execute();
+  $orderId = (int)$conn->insert_id;
+  $stmt->close();
 
-$order_id = $conn->insert_id;
+  // 3) procesar items
+  foreach ($cartItems as $item) {
+    $iaName   = $item['ia_name'];
+    $iaItemId = (int)$item['ia_item_id'];
+    $qty      = (int)$item['quantity'];
 
-// --------------------------------------------------
-// 4. Process each cart item
-// --------------------------------------------------
-while ($item = $cart_items->fetch_assoc()) {
+    if (!isset($ias[$iaName])) throw new Exception("Unknown IA: $iaName");
+    $ia_conf = $ias[$iaName];
 
-    if (!isset($ias[$item['ia_name']])) {
-        throw new Exception("Unknown IA");
-    }
-
-    $ia_conf = $ias[$item['ia_name']];
-
-    // ----------------------------------------------
-    // Call IA buy endpoint
-    // ----------------------------------------------
-    $url = $ia_conf['base_url'] . "buy.php";
-
-    $payload = json_encode([
-        "item_id"  => $item['ia_item_id'],
-        "quantity" => $item['quantity']
-    ]);
-
-    $ch = curl_init($url);
-
+    // (A) precio del item
+    $itemUrl = $ia_conf['base_url'] . "item.php?id=" . $iaItemId;
+    $ch = curl_init($itemUrl);
     curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => $payload,
-        CURLOPT_HTTPHEADER     => [
-            "Content-Type: application/json",
-            "X-API-KEY: " . $ia_conf['api_key']
-        ],
-        CURLOPT_TIMEOUT => 5
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_HTTPHEADER => ["X-API-KEY: " . $ia_conf['api_key']],
+      CURLOPT_TIMEOUT => 10
     ]);
-
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $itemResp = curl_exec($ch);
+    $itemCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if ($http_code !== 200) {
-        $conn->rollback();
-        http_response_code(409);
-        echo json_encode(["error" => "Purchase failed"]);
-        exit;
+    if ($itemCode !== 200 || !$itemResp) {
+      throw new Exception("Failed to fetch item info from IA ($iaName)");
     }
 
-    $ia_data = json_decode($response, true);
+    $itemData = json_decode($itemResp, true);
+    $itemObj  = $itemData['item'] ?? $itemData; // por si viene anidado
+    $price    = (float)($itemObj['price'] ?? 0);
 
-    // ----------------------------------------------
-    // Save order item
-    // ----------------------------------------------
-    $stmt = $conn->prepare(
-        "INSERT INTO mse_order_items
-         (order_id, ia_name, ia_item_id, quantity, ia_order_ref)
-         VALUES (?, ?, ?, ?, ?)"
-    );
+    // (B) buy en IA
+    $buyUrl = $ia_conf['base_url'] . "buy.php";
+    $payload = json_encode(["item_id" => $iaItemId, "quantity" => $qty]);
 
-    $stmt->bind_param(
-        "isiis",
-        $order_id,
-        $item['ia_name'],
-        $item['ia_item_id'],
-        $item['quantity'],
-        $ia_data['order_id']
-    );
+    $ch = curl_init($buyUrl);
+    curl_setopt_array($ch, [
+      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_POST => true,
+      CURLOPT_POSTFIELDS => $payload,
+      CURLOPT_HTTPHEADER => [
+        "Content-Type: application/json",
+        "X-API-KEY: " . $ia_conf['api_key']
+      ],
+      CURLOPT_TIMEOUT => 15
+    ]);
+    $buyResp = curl_exec($ch);
+    $buyCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
+    if ($buyCode !== 200) {
+      $err = json_decode($buyResp, true);
+      $msg = $err['error'] ?? $buyResp ?? 'Unknown buy error';
+      throw new Exception("Purchase failed for IA item ($iaName): " . $msg);
+    }
+
+    $buyData = json_decode($buyResp, true);
+    $iaOrderRef = (string)($buyData['order_id'] ?? "N/A");
+
+    // (C) guardar mse_order_items
+    $stmt = $conn->prepare("
+      INSERT INTO mse_order_items (order_id, ia_name, ia_item_id, quantity, price_at_purchase, ia_order_ref)
+      VALUES (?, ?, ?, ?, ?, ?)
+    ");
+    $stmt->bind_param("isiids", $orderId, $iaName, $iaItemId, $qty, $price, $iaOrderRef);
     $stmt->execute();
+    $stmt->close();
+  }
+
+  // 4) vaciar carrito
+  $stmt = $conn->prepare("DELETE FROM mse_carts WHERE user_id = ?");
+  $stmt->bind_param("i", $userId);
+  $stmt->execute();
+  $stmt->close();
+
+  $conn->commit();
+  echo json_encode(["success"=>true, "order_id"=>$orderId]);
+
+} catch (Exception $e) {
+  $conn->rollback();
+  http_response_code(409);
+  echo json_encode(["success"=>false, "error"=>$e->getMessage()]);
 }
-
-// --------------------------------------------------
-// 5. Clear cart
-// --------------------------------------------------
-$stmt = $conn->prepare("DELETE FROM mse_carts WHERE user_id = ?");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-
-// --------------------------------------------------
-// 6. Commit transaction
-// --------------------------------------------------
-$conn->commit();
-
-// --------------------------------------------------
-// 7. Respond OK
-// --------------------------------------------------
-echo json_encode([
-    "success"  => true,
-    "order_id" => $order_id
-]);

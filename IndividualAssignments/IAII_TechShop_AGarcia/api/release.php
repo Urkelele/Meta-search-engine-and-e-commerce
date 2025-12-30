@@ -1,9 +1,13 @@
 <?php
-require_once __DIR__ . "/_auth.php";
+
+header("Content-Type: application/json; charset=utf-8");
+
+require_once __DIR__ . "/auth.php";
 require_api_key();
 
 require_once __DIR__ . "/../DataBaseManagement/DB.php";
 $db = DB::get();
+
 
 $data = json_decode(file_get_contents("php://input"), true);
 $item_id = (int)($data['item_id'] ?? 0);

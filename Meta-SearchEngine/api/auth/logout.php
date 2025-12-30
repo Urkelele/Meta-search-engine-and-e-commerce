@@ -1,6 +1,10 @@
 <?php
-header("Content-Type: application/json; charset=utf-8");
-require_once __DIR__ . "/../../includes/session.php";
+session_start();
+$_SESSION = [];
+session_destroy();
 
-logout_user();
-echo json_encode(["success"=>true]);
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$base = preg_replace('#/api/auth$#', '', $base);
+
+header("Location: " . $base . "/public/index.php?logout=1");
+exit;

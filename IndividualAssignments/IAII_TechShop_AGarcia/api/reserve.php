@@ -1,46 +1,47 @@
 <?php
-require_once __DIR__ . "/_auth.php";
+header("Content-Type: application/json; charset=utf-8");
+
+require_once __DIR__ . "/auth.php";
 require_api_key();
 
 require_once __DIR__ . "/../DataBaseManagement/DB.php";
 $db = DB::get();
 
-$data = json_decode(file_get_contents("php://input"), true);
+
+$data = json_decode(file_get_contents("php://input"), true) ?: [];
 $item_id = (int)($data['item_id'] ?? 0);
 $qty = max(1, (int)($data['quantity'] ?? 1));
 
 if ($item_id <= 0) {
-    http_response_code(400);
-    echo json_encode(["error" => "Missing item_id"]);
-    exit;
+  http_response_code(400);
+  echo json_encode(["error" => "Missing item_id"]);
+  exit;
 }
 
 $db->begin_transaction();
-
 try {
-    $stmt = $db->prepare("SELECT available_stock FROM products WHERE product_id = ? FOR UPDATE");
-    $stmt->bind_param("i", $item_id);
-    $stmt->execute();
-    $row = $stmt->get_result()->fetch_assoc();
+  $stmt = $db->prepare("SELECT available_stock FROM products WHERE product_id = ? FOR UPDATE");
+  $stmt->bind_param("i", $item_id);
+  $stmt->execute();
+  $row = $stmt->get_result()->fetch_assoc();
 
-    if (!$row || (int)$row['available_stock'] < $qty) {
-        throw new Exception("Not enough stock");
-    }
+  if (!$row || (int)$row['available_stock'] < $qty) {
+    throw new Exception("Not enough stock");
+  }
 
-    $upd = $db->prepare("
-        UPDATE products
-        SET available_stock = available_stock - ?,
-            reserved_stock  = reserved_stock + ?
-        WHERE product_id = ?
-    ");
-    $upd->bind_param("iii", $qty, $qty, $item_id);
-    $upd->execute();
+  $upd = $db->prepare("
+    UPDATE products
+    SET available_stock = available_stock - ?,
+        reserved_stock  = reserved_stock + ?
+    WHERE product_id = ?
+  ");
+  $upd->bind_param("iii", $qty, $qty, $item_id);
+  $upd->execute();
 
-    $db->commit();
-    echo json_encode(["success" => true]);
-
+  $db->commit();
+  echo json_encode(["success" => true]);
 } catch (Exception $e) {
-    $db->rollback();
-    http_response_code(409);
-    echo json_encode(["error" => $e->getMessage()]);
+  $db->rollback();
+  http_response_code(409);
+  echo json_encode(["error" => $e->getMessage()]);
 }

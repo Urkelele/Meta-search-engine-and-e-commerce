@@ -22,7 +22,6 @@ require __DIR__ . '/topbar.php';
 
   <button type="submit">Login</button>
 
-  <!-- Link a register -->
   <a href="<?= htmlspecialchars($base) ?>/public/register.php" style="margin-left:10px;">
     Go to Register
   </a>
@@ -38,7 +37,7 @@ document.getElementById("f").addEventListener("submit", async (e) => {
   const body = Object.fromEntries(new FormData(e.target).entries());
   const dbg = document.getElementById("debug");
 
-  const url = BASE + "/api/auth/login.php"; // ✅ AQUÍ estaba tu error (ponías register)
+  const url = BASE + "/api/auth/login.php";
   dbg.textContent = "POST " + url + "\n\n" + JSON.stringify(body, null, 2);
 
   try {

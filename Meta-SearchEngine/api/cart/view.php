@@ -2,82 +2,76 @@
 session_start();
 header("Content-Type: application/json; charset=utf-8");
 
-require_once __DIR__ . "/../../includes/db.php";
+require __DIR__ . "/../../includes/db.php";
 $ias = require __DIR__ . "/../../includes/ia_config.php";
 
-// Auth
 $userId = (int)($_SESSION['user']['id'] ?? 0);
 if (!$userId) {
   http_response_code(401);
-  echo json_encode(["success" => false, "error" => "Not logged in"]);
+  echo json_encode(["success"=>false,"error"=>"Not logged in","items"=>[],"total"=>0]);
   exit;
 }
 
-// Get cart items
 $stmt = $conn->prepare("
   SELECT id, ia_name, ia_item_id, quantity
   FROM mse_carts
-  WHERE user_id = ?
+  WHERE user_id=?
   ORDER BY id DESC
 ");
 $stmt->bind_param("i", $userId);
 $stmt->execute();
-$res = $stmt->get_result();
+$rs = $stmt->get_result();
 
 $items = [];
 $total = 0.0;
 
-while ($row = $res->fetch_assoc()) {
-  $iaName  = $row['ia_name'];
-  $itemId  = (int)$row['ia_item_id'];
-  $qty     = (int)$row['quantity'];
-
+while ($row = $rs->fetch_assoc()) {
+  $iaName = $row["ia_name"];
   if (!isset($ias[$iaName])) continue;
   $ia_conf = $ias[$iaName];
 
-  // Call IA item endpoint (compatible con item.php?id=...)
-  $url = $ia_conf['base_url'] . "item.php?id=" . $itemId;
+  // ✅ OJO: tu compañero usa item.php?id=...
+  $url = $ia_conf["base_url"] . "item.php?id=" . (int)$row["ia_item_id"];
 
   $ch = curl_init($url);
   curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER     => ["X-API-KEY: " . $ia_conf['api_key']],
-    CURLOPT_TIMEOUT        => 5
+    CURLOPT_HTTPHEADER => ["X-API-KEY: " . $ia_conf["api_key"]],
+    CURLOPT_TIMEOUT => 8
   ]);
-  $response = curl_exec($ch);
+  $resp = curl_exec($ch);
   $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
   curl_close($ch);
 
-  if ($http !== 200 || !$response) continue;
+  if ($http !== 200 || !$resp) continue;
 
-  $data = json_decode($response, true);
-  if (!is_array($data)) continue;
+  $item = json_decode($resp, true);
+  // Si tu IA devuelve { success:true, item:{...} } adaptamos:
+  if (isset($item["item"])) $item = $item["item"];
 
-  // Soporta 2 formatos:
-  // 1) { success:true, item:{...} }
-  // 2) { id:..., name:..., price:... }
-  $item = $data['item'] ?? $data;
+  if (!isset($item["id"])) continue;
 
-  if (empty($item['name']) || !isset($item['price'])) continue;
-
-  $price = (float)$item['price'];
+  $price = (float)($item["price"] ?? 0);
+  $qty   = (int)$row["quantity"];
   $subtotal = $price * $qty;
   $total += $subtotal;
 
   $items[] = [
-    "cart_id"  => (int)$row['id'],
-    "ia_name"  => $iaName,
-    "item_id"  => $itemId,
-    "name"     => (string)$item['name'],
+    "cart_id"  => (int)$row["id"],
+    "ia"       => $iaName,
+    "item_id"  => (int)$row["ia_item_id"],
+    "name"     => (string)($item["name"] ?? ""),
     "price"    => $price,
     "quantity" => $qty,
-    "subtotal" => round($subtotal, 2),
-    "image"    => $item['image'] ?? null
+    "subtotal" => $subtotal,
+    "image"    => $item["image"] ?? null
   ];
 }
 
+$stmt->close();
+
 echo json_encode([
   "success" => true,
-  "items"   => $items,
-  "total"   => round($total, 2)
+  "items" => $items,
+  "total" => $total
 ]);

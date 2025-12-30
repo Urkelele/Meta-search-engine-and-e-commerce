@@ -1,37 +1,42 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) session_start();
+
 $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 $base = preg_replace('#/public$#', '', $base);
-?>
-<div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f5f5f5; border-bottom:1px solid #ddd;">
 
-  <div>
-    <a href="<?= htmlspecialchars($base) ?>/public/index.php"
-       style="text-decoration:none;font-weight:bold;">
-      Home
-    </a>
+$isLogged = !empty($_SESSION['user']['id']);
+$email = $_SESSION['user']['email'] ?? '';
+?>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#333;color:#fff;">
+  <div style="display:flex;gap:12px;align-items:center;">
+    <a href="<?= $base ?>/public/index.php" style="color:#fff;text-decoration:none;font-weight:bold;">Home</a>
   </div>
 
-  <div>
-    <?php if (!empty($_SESSION['user']['email'])): ?>
-      <span style="margin-right:12px;">
-        <?= htmlspecialchars($_SESSION['user']['email']) ?>
-      </span>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <?php if ($isLogged): ?>
+      <span style="opacity:.85;"><?= htmlspecialchars($email) ?></span>
 
-      <a href="<?= htmlspecialchars($base) ?>/public/cart.php"
-         style="margin-right:12px; text-decoration:none;">
-        Cart
+      <a href="<?= $base ?>/public/cart.php" style="color:#fff;text-decoration:none;">
+        Cart (<span id="cartCount">0</span>)
       </a>
 
-      <a href="<?= htmlspecialchars($base) ?>/public/logout_confirm.php"
-         style="text-decoration:none;">
-        Logout
-      </a>
-
+      <a href="<?= $base ?>/public/logout_confirm.php" style="color:#fff;text-decoration:none;">Logout</a>
     <?php else: ?>
-      <a href="<?= htmlspecialchars($base) ?>/public/login.php" style="margin-right:10px;">Login</a>
-      <a href="<?= htmlspecialchars($base) ?>/public/register.php">Register</a>
+      <a href="<?= $base ?>/public/login.php" style="color:#fff;text-decoration:none;">Login</a>
+      <a href="<?= $base ?>/public/register.php" style="color:#fff;text-decoration:none;">Register</a>
     <?php endif; ?>
   </div>
-
 </div>
+
+<?php if ($isLogged): ?>
+<script>
+(async () => {
+  const BASE = <?= json_encode($base) ?>;
+  try {
+    const r = await fetch(BASE + "/api/cart/view.php");
+    const data = await r.json();
+    document.getElementById("cartCount").textContent = (data.items?.length || 0);
+  } catch(e) {}
+})();
+</script>
+<?php endif; ?>

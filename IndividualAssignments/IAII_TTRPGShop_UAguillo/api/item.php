@@ -1,58 +1,86 @@
 <?php
-require_once __DIR__ . "/_auth.php";
+header("Content-Type: application/json; charset=utf-8");
+
+require __DIR__ . "/auth.php";
 require_api_key();
 
-require_once __DIR__ . "/../DataBaseManagement/DB.php";
-$db = DB::get();
+require __DIR__ . "/../includes/database.php"; // aquí debe existir $conn = new mysqli(...)
 
 $id = (int)($_GET['id'] ?? 0);
 if ($id <= 0) {
     http_response_code(400);
-    echo json_encode(["error" => "Missing id"]);
+    echo json_encode(["success" => false, "error" => "Missing id"]);
     exit;
 }
 
-$stmt = $db->prepare("
-    SELECT p.product_id, p.name, p.description, p.price, p.shipping_price,
-           p.available_stock, c.name AS category
-    FROM products p
-    JOIN categories c ON c.category_id = p.category_id
-    WHERE p.product_id = ?
+$stmt = $conn->prepare("
+    SELECT i.id, i.name, i.description, i.price, i.shipping_cost, i.stock,
+           c.name AS category, i.image_path
+    FROM items i
+    JOIN categories c ON c.id = i.category_id
+    WHERE i.id = ?
     LIMIT 1
 ");
 $stmt->bind_param("i", $id);
 $stmt->execute();
-$row = $stmt->get_result()->fetch_assoc();
+$item = $stmt->get_result()->fetch_assoc();
 
-if (!$row) {
+if (!$item) {
     http_response_code(404);
-    echo json_encode(["error" => "Not found"]);
+    echo json_encode(["success" => false, "error" => "Not found"]);
     exit;
 }
 
-// properties (atributos / subcategorías del producto)
-$props = [];
-$ps = $db->prepare("
-    SELECT a.name
-    FROM product_attributes pa
-    JOIN attributes a ON a.attribute_id = pa.attribute_id
-    WHERE pa.product_id = ?
-    ORDER BY a.name
-");
-$ps->bind_param("i", $id);
-$ps->execute();
-$pr = $ps->get_result();
-while ($r = $pr->fetch_assoc()) $props[] = $r['name'];
+/**
+ * properties: según categoría (Books / Dice Sets / Miniatures)
+ * - Books => book_properties
+ * - Dice Sets => dice_properties
+ * - Miniatures => mini_properties
+ */
+$properties = [];
+
+if ($item['category'] === 'Books') {
+    $ps = $conn->prepare("SELECT system, type, format FROM book_properties WHERE item_id = ? LIMIT 1");
+    $ps->bind_param("i", $id);
+    $ps->execute();
+    $row = $ps->get_result()->fetch_assoc();
+    if ($row) {
+        foreach ($row as $k => $v) if ($v !== null && $v !== '') $properties[$k] = $v;
+    }
+} elseif ($item['category'] === 'Dice Sets') {
+    $ps = $conn->prepare("SELECT material, dice_count, theme FROM dice_properties WHERE item_id = ? LIMIT 1");
+    $ps->bind_param("i", $id);
+    $ps->execute();
+    $row = $ps->get_result()->fetch_assoc();
+    if ($row) {
+        foreach ($row as $k => $v) if ($v !== null && $v !== '') $properties[$k] = $v;
+    }
+} elseif ($item['category'] === 'Miniatures') {
+    $ps = $conn->prepare("SELECT size, creature_type, material FROM mini_properties WHERE item_id = ? LIMIT 1");
+    $ps->bind_param("i", $id);
+    $ps->execute();
+    $row = $ps->get_result()->fetch_assoc();
+    if ($row) {
+        foreach ($row as $k => $v) if ($v !== null && $v !== '') $properties[$k] = $v;
+    }
+}
+
+$imagePath = $item['image_path'] ?? '';
+// Si guardáis imágenes en /uploads o similar, ajusta aquí:
+$imageUrl = $imagePath !== '' ? ("/IndividualAssignments/IAII_TTRPGShop_UAguillo/uploads/" . $imagePath) : "";
 
 echo json_encode([
-    "source" => "tech",
-    "id" => (int)$row['product_id'],
-    "name" => $row['name'],
-    "description" => $row['description'],
-    "price" => (float)$row['price'],
-    "shipping_price" => (float)$row['shipping_price'],
-    "stock" => (int)$row['available_stock'],
-    "category" => $row['category'],
-    "image" => "/IndividualAssignments/IAII_TechShop_AGarcia/media/productsImages/Product{$id}.jpg",
-    "properties" => $props
+    "success" => true,
+    "item" => [
+        "source" => "ttrpg",
+        "id" => (int)$item['id'],
+        "name" => $item['name'],
+        "description" => $item['description'] ?? '',
+        "price" => (float)$item['price'],
+        "shipping_price" => (float)($item['shipping_cost'] ?? 0),
+        "stock" => (int)$item['stock'],
+        "category" => $item['category'],
+        "image" => $imageUrl,
+        "properties" => $properties
+    ]
 ], JSON_UNESCAPED_UNICODE);
