@@ -23,40 +23,67 @@ if ($item_id <= 0 || $quantity <= 0) {
 }
 
 /**
- * OJO: En tu BD orders tiene user_id NOT NULL.
- * Pero el MSE no te pasa el user_id de TTRPG (y no queremos crear usuarios espejo).
- * Solución simple: usar user_id = 1 como “system user” (o crea uno).
+ * 1) Asegurar que existe un usuario interno “MSE”
  */
-$SYSTEM_USER_ID = 1;
+$MSE_EMAIL = "mse@internal";
+$MSE_PASS  = password_hash("mse_internal_password", PASSWORD_BCRYPT);
 
 $conn->begin_transaction();
 
 try {
-    // precio actual
+    // Buscar usuario MSE
+    $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt->bind_param("s", $MSE_EMAIL);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $row = $res->fetch_assoc();
+    $stmt->close();
+
+    if ($row) {
+        $SYSTEM_USER_ID = (int)$row['id'];
+    } else {
+        // Crear usuario MSE
+        $stmt = $conn->prepare("INSERT INTO users (email, password_hash) VALUES (?, ?)");
+        $stmt->bind_param("ss", $MSE_EMAIL, $MSE_PASS);
+        $stmt->execute();
+        $SYSTEM_USER_ID = (int)$conn->insert_id;
+        $stmt->close();
+    }
+
+    /**
+     * 2) Obtener precio del item
+     */
     $stmt = $conn->prepare("SELECT price FROM items WHERE id = ?");
     $stmt->bind_param("i", $item_id);
     $stmt->execute();
     $row = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
 
     if (!$row) {
-        $conn->rollback();
-        http_response_code(404);
-        echo json_encode(["success" => false, "error" => "Item not found"]);
-        exit;
+        throw new Exception("Item not found");
     }
 
     $price = (float)$row['price'];
 
-    // crear order
-    $o = $conn->prepare("INSERT INTO orders (user_id, status) VALUES (?, 'paid')");
-    $o->bind_param("i", $SYSTEM_USER_ID);
-    $o->execute();
+    /**
+     * 3) Crear order
+     */
+    $stmt = $conn->prepare("INSERT INTO orders (user_id, status) VALUES (?, 'paid')");
+    $stmt->bind_param("i", $SYSTEM_USER_ID);
+    $stmt->execute();
     $order_id = (int)$conn->insert_id;
+    $stmt->close();
 
-    // insertar order item
-    $oi = $conn->prepare("INSERT INTO order_items (order_id, item_id, quantity, purchase_price) VALUES (?, ?, ?, ?)");
-    $oi->bind_param("iiid", $order_id, $item_id, $quantity, $price);
-    $oi->execute();
+    /**
+     * 4) Insertar order item
+     */
+    $stmt = $conn->prepare("
+        INSERT INTO order_items (order_id, item_id, quantity, purchase_price)
+        VALUES (?, ?, ?, ?)
+    ");
+    $stmt->bind_param("iiid", $order_id, $item_id, $quantity, $price);
+    $stmt->execute();
+    $stmt->close();
 
     $conn->commit();
 
