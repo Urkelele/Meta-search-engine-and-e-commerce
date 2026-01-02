@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 29-12-2025 a las 17:56:13
+-- Tiempo de generación: 02-01-2026 a las 19:22:34
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -116,15 +116,15 @@ CREATE TABLE `items` (
 --
 
 INSERT INTO `items` (`id`, `category_id`, `name`, `price`, `stock`, `weight`, `shipping_cost`, `description`, `image_path`) VALUES
-(1, 1, 'Books Realm 1', 40.00, 12, 4.00, 6.00, 'Auto-generated description for Books Realm 1.', ''),
-(2, 1, 'Books Forgotten 2', 75.00, 2, 2.00, 3.00, 'Auto-generated description for Books Forgotten 2.', ''),
+(1, 1, 'Books Realm 1', 40.00, 4, 4.00, 6.00, 'Auto-generated description for Books Realm 1.', ''),
+(2, 1, 'Books Forgotten 2', 75.00, 0, 2.00, 3.00, 'Auto-generated description for Books Forgotten 2.', ''),
 (3, 1, 'Books Arcane 3', 61.00, 15, 5.00, 8.00, 'Auto-generated description for Books Arcane 3.', ''),
-(4, 1, 'Books Forgotten 4', 49.00, 14, 1.00, 9.00, 'Auto-generated description for Books Forgotten 4.', ''),
+(4, 1, 'Books Forgotten 4', 49.00, 12, 1.00, 9.00, 'Auto-generated description for Books Forgotten 4.', ''),
 (5, 1, 'Books Arcane 5', 8.00, 12, 3.00, 8.00, 'Auto-generated description for Books Arcane 5.', ''),
 (6, 1, 'Books Shadow 6', 19.00, 6, 2.00, 4.00, 'Auto-generated description for Books Shadow 6.', ''),
 (7, 2, 'Dice Sets Eternal 1', 35.00, 9, 4.00, 8.00, 'Auto-generated description for Dice Sets Eternal 1.', ''),
-(8, 2, 'Dice Sets Shadow 2', 13.00, 13, 1.00, 8.00, 'Auto-generated description for Dice Sets Shadow 2.', ''),
-(9, 2, 'Dice Sets Forgotten 3', 33.00, 18, 2.00, 7.00, 'Auto-generated description for Dice Sets Forgotten 3.', ''),
+(8, 2, 'Dice Sets Shadow 2', 13.00, 12, 1.00, 8.00, 'Auto-generated description for Dice Sets Shadow 2.', ''),
+(9, 2, 'Dice Sets Forgotten 3', 33.00, 17, 2.00, 7.00, 'Auto-generated description for Dice Sets Forgotten 3.', ''),
 (10, 2, 'Dice Sets Ancient 4', 33.00, 3, 2.00, 3.00, 'Auto-generated description for Dice Sets Ancient 4.', ''),
 (11, 2, 'Dice Sets Eternal 5', 75.00, 19, 2.00, 7.00, 'Auto-generated description for Dice Sets Eternal 5.', ''),
 (12, 2, 'Dice Sets Dragon 6', 24.00, 2, 4.00, 8.00, 'Auto-generated description for Dice Sets Dragon 6.', ''),
@@ -186,7 +186,34 @@ INSERT INTO `orders` (`id`, `user_id`, `date_created`, `status`) VALUES
 (4, 11, '2025-12-10 17:34:41', 'paid'),
 (5, 5, '2025-12-10 17:34:41', 'shipped'),
 (6, 12, '2025-12-10 17:55:17', 'paid'),
-(7, 12, '2025-12-14 18:06:59', 'paid');
+(7, 12, '2025-12-14 18:06:59', 'paid'),
+(8, 1, '2025-12-30 12:57:57', 'paid'),
+(9, 1, '2025-12-30 12:57:57', 'paid'),
+(10, 1, '2025-12-30 13:04:23', 'paid'),
+(11, 1, '2025-12-30 13:04:23', 'paid'),
+(12, 1, '2025-12-30 13:08:22', 'paid'),
+(13, 1, '2025-12-30 13:08:22', 'paid'),
+(14, 1, '2025-12-30 13:12:18', 'paid'),
+(15, 1, '2025-12-30 13:12:18', 'paid'),
+(16, 1, '2025-12-30 13:15:32', 'paid'),
+(17, 1, '2025-12-30 13:15:32', 'paid'),
+(18, 1, '2025-12-30 13:19:24', 'paid'),
+(19, 1, '2025-12-30 13:19:24', 'paid'),
+(20, 1, '2025-12-30 13:32:06', 'paid'),
+(21, 1, '2025-12-30 13:32:06', 'paid'),
+(22, 1, '2025-12-30 13:37:24', 'paid'),
+(23, 1, '2025-12-30 13:37:24', 'paid'),
+(24, 1, '2025-12-30 13:37:50', 'paid'),
+(25, 1, '2025-12-30 13:37:50', 'paid'),
+(26, 1, '2025-12-30 13:37:50', 'paid'),
+(27, 1, '2025-12-30 13:37:51', 'paid'),
+(28, 1, '2025-12-30 13:37:51', 'paid'),
+(29, 1, '2025-12-30 13:37:51', 'paid'),
+(30, 1, '2025-12-30 13:56:26', 'paid'),
+(31, 1, '2025-12-30 13:56:26', 'paid'),
+(32, 1, '2025-12-30 14:03:48', 'paid'),
+(33, 1, '2025-12-30 14:03:48', 'paid'),
+(34, 1, '2026-01-02 17:48:32', 'paid');
 
 -- --------------------------------------------------------
 
@@ -216,7 +243,34 @@ INSERT INTO `order_items` (`id`, `order_id`, `item_id`, `quantity`, `purchase_pr
 (7, 4, 13, 1, 37.00),
 (8, 5, 8, 3, 13.00),
 (9, 6, 5, 1, 8.00),
-(10, 7, 3, 1, 61.00);
+(10, 7, 3, 1, 61.00),
+(11, 8, 2, 2, 75.00),
+(12, 9, 1, 6, 40.00),
+(13, 10, 1, 1, 40.00),
+(14, 11, 4, 1, 49.00),
+(15, 12, 1, 1, 40.00),
+(16, 13, 4, 1, 49.00),
+(17, 14, 7, 1, 35.00),
+(18, 15, 6, 1, 19.00),
+(19, 16, 7, 1, 35.00),
+(20, 17, 6, 1, 19.00),
+(21, 18, 7, 1, 35.00),
+(22, 19, 6, 1, 19.00),
+(23, 20, 8, 1, 13.00),
+(24, 21, 9, 1, 33.00),
+(25, 22, 8, 1, 13.00),
+(26, 23, 9, 1, 33.00),
+(27, 24, 8, 1, 13.00),
+(28, 25, 9, 1, 33.00),
+(29, 26, 8, 1, 13.00),
+(30, 27, 9, 1, 33.00),
+(31, 28, 8, 1, 13.00),
+(32, 29, 9, 1, 33.00),
+(33, 30, 8, 1, 13.00),
+(34, 31, 9, 1, 33.00),
+(35, 32, 8, 1, 13.00),
+(36, 33, 9, 1, 33.00),
+(37, 34, 4, 1, 49.00);
 
 -- --------------------------------------------------------
 
@@ -329,13 +383,13 @@ ALTER TABLE `items`
 -- AUTO_INCREMENT de la tabla `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT de la tabla `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT de la tabla `users`

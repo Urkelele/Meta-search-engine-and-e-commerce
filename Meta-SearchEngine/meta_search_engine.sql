@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 29-12-2025 a las 20:04:46
+-- Tiempo de generación: 02-01-2026 a las 19:22:57
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -41,8 +41,7 @@ CREATE TABLE `mse_carts` (
 --
 
 INSERT INTO `mse_carts` (`id`, `user_id`, `ia_name`, `created_at`, `ia_item_id`, `quantity`) VALUES
-(1, 1, 'ttrpg', '2025-12-29', 2, 1),
-(2, 1, 'ttrpg', '2025-12-29', 1, 2);
+(3, 5, 'ttrpg', '2025-12-30', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -57,6 +56,16 @@ CREATE TABLE `mse_orders` (
   `created_at` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `mse_orders`
+--
+
+INSERT INTO `mse_orders` (`id`, `user_id`, `status`, `created_at`) VALUES
+(1, 1, 'paid', '2025-12-30'),
+(3, 1, 'paid', '2025-12-30'),
+(13, 1, 'paid', '2025-12-30'),
+(14, 1, 'paid', '2026-01-02');
+
 -- --------------------------------------------------------
 
 --
@@ -66,12 +75,32 @@ CREATE TABLE `mse_orders` (
 CREATE TABLE `mse_order_items` (
   `id` int(32) NOT NULL,
   `order_id` int(32) NOT NULL,
-  `ia_name` int(32) NOT NULL,
+  `ia_name` varchar(32) NOT NULL,
   `ia_item_id` int(32) NOT NULL,
   `quantity` int(11) NOT NULL,
-  `price_at_purchase` int(11) NOT NULL,
-  `ia_order_ref` int(11) NOT NULL
+  `price_at_purchase` decimal(10,2) NOT NULL,
+  `ia_order_ref` varchar(64) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `mse_order_items`
+--
+
+INSERT INTO `mse_order_items` (`id`, `order_id`, `ia_name`, `ia_item_id`, `quantity`, `price_at_purchase`, `ia_order_ref`) VALUES
+(1, 1, 'ttrpg', 2, 2, 75.00, '8'),
+(2, 1, 'ttrpg', 1, 6, 40.00, '9'),
+(3, 1, 'techShop', 40, 1, 189.00, 'N/A'),
+(6, 3, 'ttrpg', 1, 1, 40.00, '12'),
+(7, 3, 'ttrpg', 4, 1, 49.00, '13'),
+(8, 3, 'techShop', 35, 1, 211.00, 'N/A'),
+(9, 3, 'techShop', 41, 1, 237.00, 'N/A'),
+(28, 13, 'ttrpg', 8, 1, 13.00, '32'),
+(29, 13, 'ttrpg', 9, 1, 33.00, '33'),
+(30, 13, 'techShop', 13, 1, 96.00, 'N/A'),
+(31, 13, 'techShop', 27, 1, 143.00, 'N/A'),
+(32, 14, 'techShop', 33, 1, 192.00, '51'),
+(33, 14, 'techShop', 35, 1, 211.00, '52'),
+(34, 14, 'ttrpg', 4, 1, 49.00, '34');
 
 -- --------------------------------------------------------
 
@@ -81,7 +110,7 @@ CREATE TABLE `mse_order_items` (
 
 CREATE TABLE `mse_users` (
   `id` int(32) NOT NULL,
-  `email` varchar(128) NOT NULL,
+  `email` varchar(255) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `created_at` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -94,7 +123,9 @@ INSERT INTO `mse_users` (`id`, `email`, `password_hash`, `created_at`) VALUES
 (1, '123@gmail.com', '$2y$10$b3h/u5xhZLZn7bMNMoYFy.wWIKq97xjN6IrnAMvaOk2/ADjfVSKaG', '2025-12-29'),
 (2, '1234@gmail.com', '$2y$10$3p.nkNNhDo0DsDaZDqBcGetiMxtHDAo4wOb.D.P3THmZ4YF5hW6fa', '2025-12-29'),
 (3, '12345@gmail.com', '$2y$10$BS/0oB1oppUtNOBjNvt2r.VHYX193QG8kUKVz0oVhcUWbsYeoUb6e', '2025-12-29'),
-(4, '1212@gmail.com', '$2y$10$ZaqBBhWNKnaIQMawM.PG3e.d080vqnPR1dvG2dgJIMSsAXRedliPa', '2025-12-29');
+(4, '1212@gmail.com', '$2y$10$ZaqBBhWNKnaIQMawM.PG3e.d080vqnPR1dvG2dgJIMSsAXRedliPa', '2025-12-29'),
+(5, 'algarse04@gmail.com', '$2y$10$8eVx6qse11C25y8swCAMmO.IOol71xLygXhw708HNDutu9TFhzKpO', '2025-12-30'),
+(6, '121212@gmail.com', '$2y$10$nwPmBiSdIBUBqXAOAcgaZuEK0jeCu2NOfG4MFAC.Y99P4NHq.ljAG', '2026-01-02');
 
 --
 -- Índices para tablas volcadas
@@ -136,25 +167,25 @@ ALTER TABLE `mse_users`
 -- AUTO_INCREMENT de la tabla `mse_carts`
 --
 ALTER TABLE `mse_carts`
-  MODIFY `id` int(32) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(32) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT de la tabla `mse_orders`
 --
 ALTER TABLE `mse_orders`
-  MODIFY `id` int(32) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(32) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT de la tabla `mse_order_items`
 --
 ALTER TABLE `mse_order_items`
-  MODIFY `id` int(32) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(32) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT de la tabla `mse_users`
 --
 ALTER TABLE `mse_users`
-  MODIFY `id` int(32) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(32) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Restricciones para tablas volcadas
