@@ -55,6 +55,39 @@ function ia_public_root(string $baseUrl): string {
   return preg_replace('~/api$~', '', $baseUrl);
 }
 
+function join_ia_path(string $baseUrl, string $path): string {
+  if ($path === "") return "";
+  if (preg_match('~^https?://~i', $path)) return $path; // ya absoluta
+
+  $parts  = parse_url($baseUrl);
+  $scheme = $parts["scheme"] ?? "http";
+  $host   = $parts["host"] ?? "localhost";
+  $port   = isset($parts["port"]) ? ":" . $parts["port"] : "";
+
+  // Prefijo del proyecto = todo lo que haya antes de /IndividualAssignments/
+  // Ej: /Meta-search-engine-and-e-commerce/
+  $basePath = $parts["path"] ?? "/";
+  $projectPrefix = "";
+  if (preg_match('~^(.*?/)?IndividualAssignments/.*$~', $basePath)) {
+    // extrae "/Meta-search-engine-and-e-commerce/"
+    $projectPrefix = preg_replace('~(.*?/)?IndividualAssignments/.*$~', '$1', $basePath);
+    if ($projectPrefix === $basePath) $projectPrefix = "";
+  }
+
+  // Si path ya empieza por "/Meta-search-engine-and-e-commerce/..." no lo volvemos a añadir
+  if ($projectPrefix !== "" && str_starts_with($path, $projectPrefix)) {
+    return $scheme . "://" . $host . $port . $path;
+  }
+
+  // Si path empieza por "/IndividualAssignments/..." entonces añadimos el prefijo
+  if ($projectPrefix !== "" && str_starts_with($path, "/IndividualAssignments/")) {
+    return $scheme . "://" . $host . $port . rtrim($projectPrefix, "/") . $path;
+  }
+
+  // fallback: pegar tal cual al host
+  return $scheme . "://" . $host . $port . $path;
+}
+
 // --------------------------------------------------
 // Call IA item.php
 // --------------------------------------------------
@@ -69,6 +102,7 @@ if ($http !== 200 || empty($resp["success"])) {
   exit;
 }
 
+
 $src = $resp["item"] ?? [];
 
 // TechShop (tu item.php) devuelve estos campos dentro de item:
@@ -81,9 +115,15 @@ $stock       = (int)($src["stock"] ?? 0);
 $category    = (string)($src["category"] ?? "");
 $properties  = is_array($src["properties"] ?? null) ? $src["properties"] : [];
 
-$imageUrl    = (string)($src["image"] ?? "");
+$imageUrl = (string)($src["image"] ?? "");
 if ($imageUrl !== "") {
-  $imageUrl = absolutize_url($ia_conf["base_url"], $imageUrl);
+  $imageUrl = join_ia_path($ia_conf["base_url"], $imageUrl);
+} else {
+  $imageUrl = null;
+}
+$imageUrl = (string)($src["image"] ?? "");
+if ($imageUrl !== "") {
+  $imageUrl = join_ia_path($ia_conf["base_url"], $imageUrl);
 } else {
   $imageUrl = null;
 }

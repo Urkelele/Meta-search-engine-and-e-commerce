@@ -67,7 +67,9 @@ if ($item['category'] === 'Books') {
 
 $imagePath = $item['image_path'] ?? '';
 // Si guardáis imágenes en /uploads o similar, ajusta aquí:
-$imageUrl = $imagePath !== '' ? ("/IndividualAssignments/IAII_TTRPGShop_UAguillo/uploads/" . $imagePath) : "";
+$scriptDir = rtrim(dirname($_SERVER["SCRIPT_NAME"]), "/"); // .../api
+$rootDir   = preg_replace('~/api$~', '', $scriptDir);      // ...
+$imageUrl  = $imagePath !== '' ? ($rootDir . "/uploads/" . $imagePath) : "";
 
 echo json_encode([
     "success" => true,

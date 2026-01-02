@@ -58,7 +58,9 @@ while ($r = $pr->fetch_assoc()) {
 // --------------------------------------------------
 $img = null;
 $baseDisk = realpath(__DIR__ . "/../media/productsImages");
-$baseUrl  = "/IndividualAssignments/IAII_TechShop_AGarcia/media/productsImages";
+$scriptDir = rtrim(dirname($_SERVER["SCRIPT_NAME"]), "/"); // .../api
+$rootDir   = preg_replace('~/api$~', '', $scriptDir);      // ... (incluye Meta-search-engine-and-e-commerce)
+$baseUrl   = $rootDir . "/media/productsImages";
 $baseName = "Product{$id}";
 $exts = ["jpg", "jpeg", "png", "gif", "webp"];
 

@@ -43,7 +43,7 @@ $base = preg_replace('#/public$#', '', $base);         // /... (raíz proyecto)
 <script>
 const BASE = <?= json_encode($base) ?>;
 
-// ✅ Toast (Paso 3B)
+// ✅ Toast
 function showToast(text) {
   const t = document.getElementById("toast");
   t.textContent = text;
@@ -51,52 +51,65 @@ function showToast(text) {
   setTimeout(() => t.style.display = "none", 2000);
 }
 
-// ---------------------------------------------
-// Search handler
-// ---------------------------------------------
-document.getElementById("searchForm").onsubmit = async function(e) {
-  e.preventDefault();
-
-  const q = this.q.value;
-
-  const r = await fetch(BASE + "/api/search.php?q=" + encodeURIComponent(q));
-  const data = await r.json();
-
-  const container = document.getElementById("results");
-  container.innerHTML = "";
-
-  if (!data.items || !data.items.length) {
-    container.innerHTML = "<p>No results</p>";
-    return;
-  }
-
-  data.items.forEach(item => {
-  const div = document.createElement("div");
-  div.style.border = "1px solid #ccc";
-  div.style.margin = "10px";
-  div.style.padding = "10px";
-
-  div.innerHTML = `
-    <h3>${item.name}</h3>
-    <p>${item.price} €</p>
-    <button onclick="seeProduct('${item.ia}', ${item.item_id})">
-      See product
-    </button>
-    <button onclick="addToCart('${item.ia}', ${item.item_id}, 1)">
-      Add to cart
-    </button>
-  `;
-
-  container.appendChild(div);
-});
-}
-
 function seeProduct(ia, itemId) {
   window.location.href = BASE + "/public/product.php?ia=" + encodeURIComponent(ia) + "&id=" + encodeURIComponent(itemId);
 }
 
 // ---------------------------------------------
-// ✅ Add to cart con feedback + redirección opcional
+// ✅ Render + load
+// ---------------------------------------------
+function renderItems(items) {
+  const container = document.getElementById("results");
+  container.innerHTML = "";
+
+  if (!items || !items.length) {
+    container.innerHTML = "<p>No results</p>";
+    return;
+  }
+
+  items.forEach(item => {
+    const div = document.createElement("div");
+    div.style.border = "1px solid #ccc";
+    div.style.margin = "10px";
+    div.style.padding = "10px";
+
+    div.innerHTML = `
+      <h3>${item.name}</h3>
+      <p>${item.price} €</p>
+      <button onclick="seeProduct('${item.ia}', ${item.item_id})">See product</button>
+      <button onclick="addToCart('${item.ia}', ${item.item_id}, 1)">Add to cart</button>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+async function loadProducts(q = "") {
+  // Si tu api/search.php devuelve todos cuando q está vacío:
+  const url = BASE + "/api/search.php?q=" + encodeURIComponent(q);
+
+  const r = await fetch(url);
+  const data = await r.json().catch(() => ({}));
+
+  renderItems(data.items || []);
+}
+
+// ---------------------------------------------
+// Search handler
+// ---------------------------------------------
+document.getElementById("searchForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const q = this.q.value.trim();
+  await loadProducts(q);
+});
+
+// ✅ Cargar todos al abrir la página
+document.addEventListener("DOMContentLoaded", () => {
+  loadProducts(""); // carga todo
+});
+
+// ---------------------------------------------
+// ✅ Add to cart
 // ---------------------------------------------
 async function addToCart(ia, itemId, qty = 1) {
   const r = await fetch(BASE + "/api/cart/add.php", {
@@ -109,7 +122,6 @@ async function addToCart(ia, itemId, qty = 1) {
   try { data = await r.json(); } catch(e) {}
 
   if (!r.ok || !data.success) {
-    // Si no está loggeado, normalmente tu API devolverá 401
     if (r.status === 401) {
       showToast("You need to login first");
       window.location.href = BASE + "/public/login.php";
@@ -128,8 +140,5 @@ async function addToCart(ia, itemId, qty = 1) {
     const el = document.getElementById("cartCount");
     if (el) el.textContent = (vd.items?.length || 0);
   } catch(e) {}
-
-  // ✅ Si quieres que al añadir vaya al carrito, descomenta:
-  // window.location.href = BASE + "/public/cart.php";
 }
 </script>
