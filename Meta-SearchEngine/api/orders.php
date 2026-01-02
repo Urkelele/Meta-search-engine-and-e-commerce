@@ -15,7 +15,7 @@ if (!$userId) {
 
 // 1) obtener pedidos + items de la BD
 $sql = "
-    SELECT o.id AS order_id, o.created_at,
+    SELECT o.id AS order_id, o.created_at, o.status,
            i.ia_name, i.ia_item_id, i.quantity, i.price_at_purchase, i.ia_order_ref
     FROM mse_orders o
     JOIN mse_order_items i ON o.id = i.order_id
@@ -72,8 +72,10 @@ foreach ($rows as $r) {
         $orders[$oid] = [
             "order_id"   => (int)$oid,
             "created_at" => $r['created_at'],
+            "status"     => $r['status'],
             "items"      => []
         ];
+
     }
 
     $itemName = fetchItemName($r['ia_name'], $r['ia_item_id'], $ias);
