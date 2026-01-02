@@ -56,6 +56,8 @@ document.getElementById("f").addEventListener("submit", async (e) => {
     }
 
     window.location.href = BASE + "/public/login.php?email=" + encodeURIComponent(body.email);
+    dbg.textContent += "\n\n✅ Account created. Check your email to verify before login.";
+
 
   } catch (err) {
     dbg.textContent += "\n\nFetch failed: " + err;
