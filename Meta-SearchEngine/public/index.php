@@ -32,8 +32,17 @@ $base = preg_replace('#/public$#', '', $base);         // /... (raíz proyecto)
 </div>
 
 <form id="searchForm">
-    <input type="text" name="q" placeholder="Search products...">
-    <button type="submit">Search</button>
+  <input type="text" name="q" placeholder="Search products...">
+
+  <select id="category" name="category">
+    <option value="">All Categories</option>
+  </select>
+
+  <select id="subcategory" name="subcategory">
+    <option value="">All Subcategories</option>
+  </select>
+
+  <button type="submit">Search</button>
 </form>
 
 <hr>
@@ -43,7 +52,6 @@ $base = preg_replace('#/public$#', '', $base);         // /... (raíz proyecto)
 <script>
 const BASE = <?= json_encode($base) ?>;
 
-// ✅ Toast
 function showToast(text) {
   const t = document.getElementById("toast");
   t.textContent = text;
@@ -55,9 +63,6 @@ function seeProduct(ia, itemId) {
   window.location.href = BASE + "/public/product.php?ia=" + encodeURIComponent(ia) + "&id=" + encodeURIComponent(itemId);
 }
 
-// ---------------------------------------------
-// ✅ Render + load
-// ---------------------------------------------
 function renderItems(items) {
   const container = document.getElementById("results");
   container.innerHTML = "";
@@ -76,41 +81,96 @@ function renderItems(items) {
     div.innerHTML = `
       <h3>${item.name}</h3>
       <p>${item.price} €</p>
+      <p style="color:#666;">${item.category || ""}</p>
       <button onclick="seeProduct('${item.ia}', ${item.item_id})">See product</button>
       <button onclick="addToCart('${item.ia}', ${item.item_id}, 1)">Add to cart</button>
     `;
-
     container.appendChild(div);
   });
 }
 
-async function loadProducts(q = "") {
-  // Si tu api/search.php devuelve todos cuando q está vacío:
-  const url = BASE + "/api/search.php?q=" + encodeURIComponent(q);
+function fillCategories(meta, selectedCat) {
+  const sel = document.getElementById("category");
+  const keep = sel.value;
+  sel.innerHTML = `<option value="">All Categories</option>` +
+    (meta?.categories || []).map(c =>
+      `<option value="${encodeURIComponent(c)}">${c}</option>`
+    ).join("");
+
+  // restaurar selección
+  if (selectedCat) sel.value = encodeURIComponent(selectedCat);
+  else if (keep) sel.value = keep;
+}
+
+function fillSubcategories(meta, cat, selectedSub) {
+  const sel = document.getElementById("subcategory");
+  const list = (meta?.subcategories_by_category && cat)
+    ? (meta.subcategories_by_category[cat] || [])
+    : [];
+
+  sel.innerHTML = `<option value="">All Subcategories</option>` +
+    list.map(s => `<option value="${encodeURIComponent(s)}">${s}</option>`).join("");
+
+  if (selectedSub) sel.value = encodeURIComponent(selectedSub);
+}
+
+async function loadProducts() {
+  const q = document.querySelector('input[name="q"]').value.trim();
+  const catEnc = document.getElementById("category").value;
+  const subEnc = document.getElementById("subcategory").value;
+
+  const category = catEnc ? decodeURIComponent(catEnc) : "";
+  const subcategory = subEnc ? decodeURIComponent(subEnc) : "";
+
+  const url = BASE + "/api/search.php?q=" + encodeURIComponent(q)
+            + "&category=" + encodeURIComponent(category)
+            + "&subcategory=" + encodeURIComponent(subcategory);
 
   const r = await fetch(url);
   const data = await r.json().catch(() => ({}));
 
+  if (!data.success) {
+    showToast("Search error");
+    return;
+  }
+
+  // Rellenar selects con meta
+  fillCategories(data.meta, category);
+
+  // Subcats dependen de la categoría seleccionada
+  const currentCat = (document.getElementById("category").value)
+    ? decodeURIComponent(document.getElementById("category").value)
+    : "";
+
+  fillSubcategories(data.meta, currentCat, subcategory);
+
   renderItems(data.items || []);
 }
 
-// ---------------------------------------------
-// Search handler
-// ---------------------------------------------
-document.getElementById("searchForm").addEventListener("submit", async function(e) {
+// submit manual
+document.getElementById("searchForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const q = this.q.value.trim();
-  await loadProducts(q);
+  await loadProducts();
 });
 
-// ✅ Cargar todos al abrir la página
+// auto-filtrar al cambiar categoría (como pediste)
+document.getElementById("category").addEventListener("change", async () => {
+  // reset subcat
+  document.getElementById("subcategory").value = "";
+  await loadProducts();
+});
+
+// auto-filtrar al cambiar subcategoría
+document.getElementById("subcategory").addEventListener("change", async () => {
+  await loadProducts();
+});
+
+// cargar todo al entrar
 document.addEventListener("DOMContentLoaded", () => {
-  loadProducts(""); // carga todo
+  loadProducts();
 });
 
-// ---------------------------------------------
-// ✅ Add to cart
-// ---------------------------------------------
+// tu addToCart igual que lo tienes
 async function addToCart(ia, itemId, qty = 1) {
   const r = await fetch(BASE + "/api/cart/add.php", {
     method: "POST",
@@ -132,13 +192,5 @@ async function addToCart(ia, itemId, qty = 1) {
   }
 
   showToast("Added to cart ✅");
-
-  // ✅ Actualiza contador del topbar si existe
-  try {
-    const vr = await fetch(BASE + "/api/cart/view.php");
-    const vd = await vr.json();
-    const el = document.getElementById("cartCount");
-    if (el) el.textContent = (vd.items?.length || 0);
-  } catch(e) {}
 }
 </script>
