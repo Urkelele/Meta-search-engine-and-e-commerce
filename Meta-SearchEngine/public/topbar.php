@@ -39,7 +39,8 @@ $email = $_SESSION['user']['email'] ?? '';
   try {
     const r = await fetch(BASE + "/api/cart/view.php");
     const data = await r.json();
-    document.getElementById("cartCount").textContent = (data.items?.length || 0);
+    const totalQty = (data.items || []).reduce((acc, it) => acc + (parseInt(it.quantity || 1, 10)), 0);
+    document.getElementById("cartCount").textContent = totalQty;
   } catch(e) {}
 })();
 </script>

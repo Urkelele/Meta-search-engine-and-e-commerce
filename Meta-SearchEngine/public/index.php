@@ -50,6 +50,22 @@ $base = preg_replace('#/public$#', '', $base);         // /... (raíz proyecto)
 <div id="results"></div>
 
 <script>
+async function refreshCartCount() {
+  try {
+    const r = await fetch(BASE + "/api/cart/view.php", { cache: "no-store" });
+    const data = await r.json();
+
+    const el = document.getElementById("cartCount");
+    if (!el) return;
+
+    // ✅ mejor: sumar cantidades (si existe quantity)
+    const totalQty = (data.items || []).reduce((acc, it) => acc + (parseInt(it.quantity || 1, 10)), 0);
+    el.textContent = totalQty;
+  } catch (e) {
+    // silencioso
+  }
+}
+
 const BASE = <?= json_encode($base) ?>;
 
 function showToast(text) {
@@ -168,6 +184,7 @@ document.getElementById("subcategory").addEventListener("change", async () => {
 // cargar todo al entrar
 document.addEventListener("DOMContentLoaded", () => {
   loadProducts();
+  refreshCartCount(); // ✅ por si el topbar tarda o falla
 });
 
 // tu addToCart igual que lo tienes
@@ -192,5 +209,8 @@ async function addToCart(ia, itemId, qty = 1) {
   }
 
   showToast("Added to cart ✅");
+
+  // ✅ ACTUALIZA topbar
+  await refreshCartCount();
 }
 </script>
