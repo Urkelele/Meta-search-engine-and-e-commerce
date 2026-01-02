@@ -59,7 +59,10 @@ fetch(BASE + "/api/orders.php")
 
     data.orders.forEach(order => {
       let html = `
-        <h3>Order #${order.order_id} – ${order.created_at}</h3>
+        <h3>
+            Order #${order.order_id} – ${order.created_at}
+            <span style="font-size:0.9em; opacity:0.8;">[${order.status}]</span>
+        </h3>
         <table border="1" cellpadding="6">
           <tr>
             <th>Item</th>
