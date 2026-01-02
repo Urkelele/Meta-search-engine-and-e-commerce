@@ -20,6 +20,10 @@ $email = $_SESSION['user']['email'] ?? '';
         Cart (<span id="cartCount">0</span>)
       </a>
 
+      <a href="<?= $base ?>/public/orders.php" style="color:#fff;text-decoration:none;">
+        Orders
+      </a>
+
       <a href="<?= $base ?>/public/logout_confirm.php" style="color:#fff;text-decoration:none;">Logout</a>
     <?php else: ?>
       <a href="<?= $base ?>/public/login.php" style="color:#fff;text-decoration:none;">Login</a>
