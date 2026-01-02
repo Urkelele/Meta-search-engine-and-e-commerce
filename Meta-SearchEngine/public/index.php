@@ -71,22 +71,29 @@ document.getElementById("searchForm").onsubmit = async function(e) {
   }
 
   data.items.forEach(item => {
-    const div = document.createElement("div");
-    div.style.border = "1px solid #ccc";
-    div.style.margin = "10px";
-    div.style.padding = "10px";
+  const div = document.createElement("div");
+  div.style.border = "1px solid #ccc";
+  div.style.margin = "10px";
+  div.style.padding = "10px";
 
-    div.innerHTML = `
-      <h3>${item.name}</h3>
-      <p>${item.price} €</p>
-      <button onclick="addToCart('${item.ia}', ${item.item_id}, 1)">
-        Add to cart
-      </button>
-    `;
+  div.innerHTML = `
+    <h3>${item.name}</h3>
+    <p>${item.price} €</p>
+    <button onclick="seeProduct('${item.ia}', ${item.item_id})">
+      See product
+    </button>
+    <button onclick="addToCart('${item.ia}', ${item.item_id}, 1)">
+      Add to cart
+    </button>
+  `;
 
-    container.appendChild(div);
-  });
-};
+  container.appendChild(div);
+});
+}
+
+function seeProduct(ia, itemId) {
+  window.location.href = BASE + "/public/product.php?ia=" + encodeURIComponent(ia) + "&id=" + encodeURIComponent(itemId);
+}
 
 // ---------------------------------------------
 // ✅ Add to cart con feedback + redirección opcional
@@ -126,10 +133,3 @@ async function addToCart(ia, itemId, qty = 1) {
   // window.location.href = BASE + "/public/cart.php";
 }
 </script>
-
-<p>
-    <a href="cart.php">View Cart</a>
-</p>
-
-</body>
-</html>
