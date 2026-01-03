@@ -4,7 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');  // /.../public
-$base = preg_replace('#/public$#', '', $base);         // /... (raíz proyecto)
+$base = preg_replace('#/public$#', '', $base);         // /... (project root)
 
 require __DIR__ . '/topbar.php';
 
@@ -32,6 +32,7 @@ require __DIR__ . '/topbar.php';
 <script>
 const BASE = <?= json_encode($base) ?>;
 
+// handle login form submit
 document.getElementById("f").addEventListener("submit", async (e) => {
   e.preventDefault();
   const body = Object.fromEntries(new FormData(e.target).entries());
@@ -59,7 +60,7 @@ document.getElementById("f").addEventListener("submit", async (e) => {
       return;
     }
 
-    // ✅ redirect al index cuando login OK
+    // redirect al index when login OK
     window.location.href = BASE + "/public/index.php";
 
   } catch (err) {

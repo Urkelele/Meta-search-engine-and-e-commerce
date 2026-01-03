@@ -2,13 +2,12 @@
 header("Content-Type: application/json");
 
 require "../includes/database.php";
-require "auth.php"; // 🔐 Protegemos la API
+require "auth.php"; 
 
-// Get filters
+
 $q = $_GET['q'] ?? "";
 $category = $_GET['category'] ?? "";
 
-// Base query
 $query = "SELECT items.id, items.name, items.price, items.stock,
                  items.image_path, categories.name AS category
           FROM items
@@ -34,7 +33,6 @@ if (!empty($category)) {
     $types .= "s";
 }
 
-// Prepare
 $stmt = $conn->prepare($query);
 
 if (!empty($params)) {
@@ -59,7 +57,6 @@ while ($row = $result->fetch_assoc()) {
     ];
 }
 
-// Output
 echo json_encode([
     "success" => true,
     "items"   => $items

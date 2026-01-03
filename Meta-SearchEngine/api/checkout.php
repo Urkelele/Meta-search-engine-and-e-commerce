@@ -2,7 +2,7 @@
 session_start();
 header("Content-Type: application/json; charset=utf-8");
 
-require __DIR__ . "/../includes/db.php";          // $conn (mysqli)
+require __DIR__ . "/../includes/db.php";
 $ias = require __DIR__ . "/../includes/ia_config.php";
 
 $userId = (int)($_SESSION['user']['id'] ?? 0);
@@ -12,7 +12,7 @@ if (!$userId) {
   exit;
 }
 
-// pago mock (solo validar que han rellenado)
+// mock payment processing
 $data = json_decode(file_get_contents("php://input"), true) ?: [];
 $card = trim($data['card_number'] ?? '');
 $name = trim($data['card_name'] ?? '');
@@ -25,7 +25,7 @@ if ($card === '' || $name === '' || $exp === '' || $cvv === '') {
   exit;
 }
 
-// 1) cargar carrito
+// load cart items
 $stmt = $conn->prepare("
   SELECT id, ia_name, ia_item_id, quantity
   FROM mse_carts
@@ -49,7 +49,7 @@ if (!$cartItems) {
 $conn->begin_transaction();
 
 try {
-  // 2) crear order en MSE (id autoincrement)
+  // create mse order
   $status = "paid";
   $stmt = $conn->prepare("INSERT INTO mse_orders (user_id, status, created_at) VALUES (?, ?, NOW())");
   $stmt->bind_param("is", $userId, $status);
@@ -57,7 +57,7 @@ try {
   $orderId = (int)$conn->insert_id;
   $stmt->close();
 
-  // 3) procesar items
+  // process each IA item
   foreach ($cartItems as $item) {
     $iaName   = $item['ia_name'];
     $iaItemId = (int)$item['ia_item_id'];
@@ -66,7 +66,6 @@ try {
     if (!isset($ias[$iaName])) throw new Exception("Unknown IA: $iaName");
     $ia_conf = $ias[$iaName];
 
-    // (A) precio del item
     $itemUrl = $ia_conf['base_url'] . "item.php?id=" . $iaItemId;
     $ch = curl_init($itemUrl);
     curl_setopt_array($ch, [
@@ -83,10 +82,10 @@ try {
     }
 
     $itemData = json_decode($itemResp, true);
-    $itemObj  = $itemData['item'] ?? $itemData; // por si viene anidado
+    $itemObj  = $itemData['item'] ?? $itemData;
     $price    = (float)($itemObj['price'] ?? 0);
 
-    // (B) buy en IA
+    // buy item from IA
     $buyUrl = $ia_conf['base_url'] . "buy.php";
     $payload = json_encode(["item_id" => $iaItemId, "quantity" => $qty]);
 
@@ -114,7 +113,7 @@ try {
     $buyData = json_decode($buyResp, true);
     $iaOrderRef = (string)($buyData['order_id'] ?? "N/A");
 
-    // (C) guardar mse_order_items
+    // record in mse_order_items
     $stmt = $conn->prepare("
       INSERT INTO mse_order_items (order_id, ia_name, ia_item_id, quantity, price_at_purchase, ia_order_ref)
       VALUES (?, ?, ?, ?, ?, ?)
@@ -124,7 +123,7 @@ try {
     $stmt->close();
   }
 
-  // 4) vaciar carrito
+  // clear user's cart
   $stmt = $conn->prepare("DELETE FROM mse_carts WHERE user_id = ?");
   $stmt->bind_param("i", $userId);
   $stmt->execute();

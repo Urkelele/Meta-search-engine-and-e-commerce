@@ -2,7 +2,7 @@
 session_start();
 
 $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');   // /.../public
-$base = preg_replace('#/public$#', '', $base);          // /... (raíz proyecto)
+$base = preg_replace('#/public$#', '', $base);          // /... (project root)
 
 if (empty($_SESSION['user']['id'])) {
     header("Location: {$base}/public/login.php");
@@ -26,9 +26,7 @@ require __DIR__ . '/topbar.php';
 <script>
 const BASE = <?= json_encode($base) ?>;
 
-// ---------------------------------------------
 // Load orders
-// ---------------------------------------------
 fetch(BASE + "/api/orders.php")
   .then(async r => {
     const text = await r.text();
@@ -88,11 +86,10 @@ fetch(BASE + "/api/orders.php")
       html += `</table><br>`;
       div.innerHTML += html;
     });
-  });
+  }
+);
 
-// ---------------------------------------------
-// Escape HTML (avoid XSS)
-// ---------------------------------------------
+// HTML escape
 function escapeHtml(text) {
   return text
     .replace(/&/g, "&amp;")

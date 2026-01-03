@@ -7,6 +7,7 @@ require_once __DIR__ . "/../DataBaseManagement/DB.php";
 $db = DB::get();
 $q = trim($_GET['q'] ?? '');
 
+// Search products
 $sql = "
     SELECT p.product_id, p.name, p.description, p.price, p.shipping_price,
            p.available_stock, c.name AS category
@@ -27,7 +28,7 @@ while ($row = $res->fetch_assoc()) {
     $id = (int)$row['product_id'];
 
     $items[] = [
-        "source" => "tech", // opcional, no molesta
+        "source" => "tech",
         "id" => $id,
         "name" => $row['name'],
         "description" => $row['description'],
@@ -35,9 +36,9 @@ while ($row = $res->fetch_assoc()) {
         "shipping_price" => (float)$row['shipping_price'],
         "stock" => (int)$row['available_stock'],
         "category" => $row['category'],
-        // pon una ruta que te funcione desde el navegador:
+        // poner una ruta que funcione desde el navegador (esto va?):
         "image" => "/IndividualAssignments/IAII_TechShop_AGarcia/media/productsImages/Product{$id}.jpg",
-        "properties" => [] // si quieres, lo llenas en item.php
+        "properties" => [] //se llena en item.php
     ];
 }
 

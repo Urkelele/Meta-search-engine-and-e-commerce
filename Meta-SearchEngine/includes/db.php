@@ -14,5 +14,4 @@ function db(): mysqli {
   return $conn;
 }
 
-// Compatibilidad: algunos scripts esperan $conn
 $conn = db();

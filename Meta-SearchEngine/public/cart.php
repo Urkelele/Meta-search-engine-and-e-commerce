@@ -2,7 +2,7 @@
 session_start();
 
 $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');   // /.../public
-$base = preg_replace('#/public$#', '', $base);          // /... (raíz proyecto)
+$base = preg_replace('#/public$#', '', $base);          // /... (project root)
 
 if (empty($_SESSION['user']['id'])) {
     header("Location: {$base}/public/login.php");
@@ -28,9 +28,7 @@ require __DIR__ . '/topbar.php';
 <script>
 const BASE = <?= json_encode($base) ?>;
 
-// ---------------------------------------------
-// Load cart
-// ---------------------------------------------
+// Load cart items
 fetch(BASE + "/api/cart/view.php")
   .then(async r => {
     const text = await r.text();
@@ -67,11 +65,9 @@ fetch(BASE + "/api/cart/view.php")
     });
 
     div.innerHTML += `<p><b>Total: ${Number(data.total).toFixed(2)} €</b></p>`;
-  });
+});
 
-// ---------------------------------------------
-// Remove item
-// ---------------------------------------------
+
 function removeItem(cartId) {
   fetch(BASE + "/api/cart/remove.php", {
     method: "POST",
@@ -81,9 +77,6 @@ function removeItem(cartId) {
   .then(() => location.reload());
 }
 
-// ---------------------------------------------
-// Checkout
-// ---------------------------------------------
 function checkout() {
   window.location.href = BASE + "/public/checkout.php";
 }

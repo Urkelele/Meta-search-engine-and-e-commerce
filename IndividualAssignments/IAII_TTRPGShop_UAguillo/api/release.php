@@ -22,6 +22,7 @@ if ($item_id <= 0 || $quantity <= 0) {
     exit;
 }
 
+// Release reserved stock
 $stmt = $conn->prepare("UPDATE items SET stock = stock + ? WHERE id = ?");
 $stmt->bind_param("ii", $quantity, $item_id);
 $stmt->execute();

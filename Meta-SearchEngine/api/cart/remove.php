@@ -2,7 +2,7 @@
 session_start();
 header("Content-Type: application/json; charset=utf-8");
 
-require __DIR__ . "/../../includes/db.php";      // $conn
+require __DIR__ . "/../../includes/db.php";
 $ias = require __DIR__ . "/../../includes/ia_config.php";
 
 $userId = (int)($_SESSION['user']['id'] ?? 0);
@@ -12,7 +12,7 @@ $data = json_decode(file_get_contents("php://input"), true) ?: [];
 $cartId = (int)($data["cart_id"] ?? 0);
 if ($cartId <= 0) { http_response_code(400); echo json_encode(["success"=>false,"error"=>"Missing cart_id"]); exit; }
 
-// 1) Buscar item del carrito (para saber IA, item y qty)
+// Get cart item
 $stmt = $conn->prepare("SELECT ia_name, ia_item_id, quantity FROM mse_carts WHERE id=? AND user_id=? LIMIT 1");
 $stmt->bind_param("ii", $cartId, $userId);
 $stmt->execute();
@@ -25,7 +25,7 @@ $ia = $row["ia_name"];
 if (!isset($ias[$ia])) { http_response_code(400); echo json_encode(["success"=>false,"error"=>"Unknown IA"]); exit; }
 $ia_conf = $ias[$ia];
 
-// 2) RELEASE en IA (✅ NO reserve)
+// Release stock in IA
 $url = $ia_conf["base_url"] . "release.php";
 $payload = json_encode(["item_id" => (int)$row["ia_item_id"], "quantity" => (int)$row["quantity"]]);
 
@@ -47,7 +47,7 @@ if ($http !== 200) {
   exit;
 }
 
-// 3) Borrar del carrito
+// Erase from MSE cart
 $stmt = $conn->prepare("DELETE FROM mse_carts WHERE id=? AND user_id=?");
 $stmt->bind_param("ii", $cartId, $userId);
 $stmt->execute();

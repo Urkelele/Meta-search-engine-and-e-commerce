@@ -16,6 +16,7 @@ if ($email === "" || $pass === "") {
   exit;
 }
 
+// Fetch user
 $stmt = $conn->prepare("SELECT id, email, password_hash FROM mse_users WHERE email=? LIMIT 1");
 $stmt->bind_param("s", $email);
 $stmt->execute();

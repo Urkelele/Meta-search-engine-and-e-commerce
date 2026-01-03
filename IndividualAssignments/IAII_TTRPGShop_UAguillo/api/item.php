@@ -4,7 +4,7 @@ header("Content-Type: application/json; charset=utf-8");
 require __DIR__ . "/auth.php";
 require_api_key();
 
-require __DIR__ . "/../includes/database.php"; // aquí debe existir $conn = new mysqli(...)
+require __DIR__ . "/../includes/database.php";
 
 $id = (int)($_GET['id'] ?? 0);
 if ($id <= 0) {
@@ -13,6 +13,7 @@ if ($id <= 0) {
     exit;
 }
 
+// obtain item main data
 $stmt = $conn->prepare("
     SELECT i.id, i.name, i.description, i.price, i.shipping_cost, i.stock,
            c.name AS category, i.image_path
@@ -32,7 +33,7 @@ if (!$item) {
 }
 
 /**
- * properties: según categoría (Books / Dice Sets / Miniatures)
+ * properties: category dependent (Books / Dice Sets / Miniatures)
  * - Books => book_properties
  * - Dice Sets => dice_properties
  * - Miniatures => mini_properties
@@ -66,7 +67,6 @@ if ($item['category'] === 'Books') {
 }
 
 $imagePath = $item['image_path'] ?? '';
-// Si guardáis imágenes en /uploads o similar, ajusta aquí:
 $scriptDir = rtrim(dirname($_SERVER["SCRIPT_NAME"]), "/"); // .../api
 $rootDir   = preg_replace('~/api$~', '', $scriptDir);      // ...
 $imageUrl  = $imagePath !== '' ? ($rootDir . "/uploads/" . $imagePath) : "";

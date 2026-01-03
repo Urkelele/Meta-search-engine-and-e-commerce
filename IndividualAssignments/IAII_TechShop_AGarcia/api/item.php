@@ -14,9 +14,7 @@ if ($id <= 0) {
     exit;
 }
 
-// --------------------------------------------------
-// 1) Product main data
-// --------------------------------------------------
+// Product main data
 $stmt = $db->prepare("
     SELECT p.product_id, p.name, p.description, p.price, p.shipping_price,
            p.available_stock, c.name AS category
@@ -35,9 +33,7 @@ if (!$row) {
     exit;
 }
 
-// --------------------------------------------------
-// 2) Properties = attributes/subcategories for this product
-// --------------------------------------------------
+// Product subcategories / attributes
 $properties = [];
 $ps = $db->prepare("
     SELECT a.name
@@ -53,13 +49,11 @@ while ($r = $pr->fetch_assoc()) {
     $properties[] = $r["name"];
 }
 
-// --------------------------------------------------
-// 3) Image path: try to find real extension
-// --------------------------------------------------
+// Product image (I think i doesn't work yet)
 $img = null;
 $baseDisk = realpath(__DIR__ . "/../media/productsImages");
 $scriptDir = rtrim(dirname($_SERVER["SCRIPT_NAME"]), "/"); // .../api
-$rootDir   = preg_replace('~/api$~', '', $scriptDir);      // ... (incluye Meta-search-engine-and-e-commerce)
+$rootDir   = preg_replace('~/api$~', '', $scriptDir);      // ... (adds Meta-search-engine-and-e-commerce)
 $baseUrl   = $rootDir . "/media/productsImages";
 $baseName = "Product{$id}";
 $exts = ["jpg", "jpeg", "png", "gif", "webp"];
@@ -76,12 +70,10 @@ if ($baseDisk) {
 
 // fallback (por si no hay imagen)
 if (!$img) {
-    $img = $baseUrl . "/no-image.png"; // si no tienes este, déjalo igual o pon null
+    $img = $baseUrl . "/no-image.png"; // tendiamos que meter esta imagen
 }
 
-// --------------------------------------------------
-// 4) Output (compatible con tu MSE)
-// --------------------------------------------------
+// Output json
 echo json_encode([
     "success" => true,
     "item" => [

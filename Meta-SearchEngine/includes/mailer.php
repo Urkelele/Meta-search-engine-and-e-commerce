@@ -10,8 +10,6 @@ function mse_base_url(): string {
   $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
   $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
-  // si tu public está en /Meta-search-engine-and-e-commerce/public
-  // ajusta esto si tu estructura es distinta:
   $path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\'); // /.../public
   return $protocol . '://' . $host . $path;
 }
