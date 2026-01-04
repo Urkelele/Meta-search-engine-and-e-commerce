@@ -12,7 +12,7 @@ if ($token === "") {
   exit;
 }
 
-// Buscar token válido
+// find token
 $stmt = $conn->prepare("
   SELECT user_id
   FROM mse_tokens
@@ -32,13 +32,13 @@ if (!$row) {
 
 $userId = (int)$row["user_id"];
 
-// ✅ Marcar usuario como verificado
+// Check if user is already verified
 $upd = $conn->prepare("UPDATE mse_users SET is_verified=1 WHERE id=?");
 $upd->bind_param("i", $userId);
 $upd->execute();
 $upd->close();
 
-// ✅ Eliminar token
+// Delete the used token
 $del = $conn->prepare("DELETE FROM mse_tokens WHERE token=? AND type='email_verify'");
 $del->bind_param("s", $token);
 $del->execute();
