@@ -1,7 +1,4 @@
 <?php
-session_start();
-header("Content-Type: text/html; charset=utf-8");
-
 require __DIR__ . "/../includes/db.php";
 $conn = db();
 
@@ -9,6 +6,7 @@ $token = trim($_GET["token"] ?? "");
 
 if ($token === "") {
   echo "<h2>Invalid verification link.</h2>";
+
   exit;
 }
 
@@ -26,7 +24,7 @@ $stmt->close();
 
 if (!$row) {
   echo "<h2>Invalid or expired token.</h2>";
-  echo "<p><a href='login.php'>Go to login</a></p>";
+  echo "<p><a href='index.php?page=login'>Go to login</a></p>";
   exit;
 }
 
@@ -44,5 +42,5 @@ $del->bind_param("s", $token);
 $del->execute();
 $del->close();
 
-echo "<h2>Your email has been successfully verified ✅</h2>";
-echo "<p><a href='login.php'>Click here to log in</a></p>";
+echo "<h2>Your email has been successfully verified </h2>";
+echo "<p><a href='index.php?page=login'>Click here to log in</a></p>";

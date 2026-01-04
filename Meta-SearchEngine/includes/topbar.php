@@ -1,8 +1,5 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) session_start();
-
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-$base = preg_replace('#/public$#', '', $base);
+$base = $GLOBALS['BASE'] ?? '';
 
 $isLogged = !empty($_SESSION['user']['id']);
 $email = $_SESSION['user']['email'] ?? '';
@@ -16,18 +13,18 @@ $email = $_SESSION['user']['email'] ?? '';
     <?php if ($isLogged): ?>
       <span style="opacity:.85;"><?= htmlspecialchars($email) ?></span>
 
-      <a href="<?= $base ?>/public/cart.php" style="color:#fff;text-decoration:none;">
+      <a href="<?= $base ?>/public/index.php?page=cart" style="color:#fff;text-decoration:none;">
         Cart (<span id="cartCount">0</span>)
       </a>
 
-      <a href="<?= $base ?>/public/orders.php" style="color:#fff;text-decoration:none;">
+      <a href="<?= $base ?>/public/index.php?page=orders" style="color:#fff;text-decoration:none;">
         Orders
       </a>
 
-      <a href="<?= $base ?>/public/logout_confirm.php" style="color:#fff;text-decoration:none;">Logout</a>
+      <a href="<?= $base ?>/public/index.php?page=logout" style="color:#fff;text-decoration:none;">Logout</a>
     <?php else: ?>
-      <a href="<?= $base ?>/public/login.php" style="color:#fff;text-decoration:none;">Login</a>
-      <a href="<?= $base ?>/public/register.php" style="color:#fff;text-decoration:none;">Register</a>
+      <a href="<?= $base ?>/public/index.php?page=login" style="color:#fff;text-decoration:none;">Login</a>
+      <a href="<?= $base ?>/public/index.php?page=register" style="color:#fff;text-decoration:none;">Register</a>
     <?php endif; ?>
   </div>
 </div>

@@ -30,7 +30,7 @@ if (!isset($ias[$ia])) {
 
 $ia_conf = $ias[$ia];
 
-// Reserv stock en IA
+// Reserve stock en IA
 $url = $ia_conf["base_url"] . "reserve.php";
 $payload = json_encode(["item_id"=>$itemId, "quantity"=>$quantity]);
 

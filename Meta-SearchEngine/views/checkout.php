@@ -1,13 +1,10 @@
 <?php
-session_start();
 if (empty($_SESSION['user']['id'])) {
-  header("Location: login.php");
+  header("Location: index.php?page=login");
   exit;
 }
 
-require __DIR__ . "/topbar.php";
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');  // /.../public
-$base = preg_replace('#/public$#', '', $base);         // /... (project root)
+$base = $GLOBALS['BASE'] ?? '';
 ?>
 <!doctype html>
 <html>

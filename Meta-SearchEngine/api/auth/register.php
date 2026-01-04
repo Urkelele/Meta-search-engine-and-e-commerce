@@ -2,7 +2,7 @@
 session_start();
 header("Content-Type: application/json; charset=utf-8");
 
-require __DIR__ . "/../../includes/DB.php"; // <-- ajusta si cambia
+require __DIR__ . "/../../includes/DB.php";
 $conn = db();
 
 $input = json_decode(file_get_contents("php://input"), true);
@@ -27,7 +27,6 @@ if (strlen($pass) < 6) {
   exit;
 }
 
-// 1) no permitir duplicados
 $chk = $conn->prepare("SELECT id, is_verified FROM mse_users WHERE email = ? LIMIT 1");
 $chk->bind_param("s", $email);
 $chk->execute();
@@ -40,7 +39,7 @@ if ($existing) {
   exit;
 }
 
-// 2) crear usuario (is_verified=0)
+// Create the user
 $hash = password_hash($pass, PASSWORD_DEFAULT);
 $createdAt = date("Y-m-d");
 
@@ -56,23 +55,21 @@ if (!$ins->execute()) {
 $userId = $ins->insert_id;
 $ins->close();
 
-// 3) token verify
-$token = bin2hex(random_bytes(32)); // 64 chars
-$expire = date("Y-m-d H:i:s", time() + 24*60*60); // 24h
+// Token verification
+$token = bin2hex(random_bytes(32));
+$expire = date("Y-m-d H:i:s", time() + 24*60*60);
 
 $tok = $conn->prepare("INSERT INTO mse_tokens (user_id, token, type, expire_time) VALUES (?, ?, 'email_verify', ?)");
 $tok->bind_param("iss", $userId, $token, $expire);
 $tok->execute();
 $tok->close();
 
-// 4) enviar email (PHPMailer)
-require __DIR__ . "/../../includes/mailer.php"; // lo creamos abajo
+// Send verification mail
+require __DIR__ . "/../../includes/mailer.php";
 
 $sent = sendVerificationEmailMSE($email, $token);
 
 if (!$sent) {
-  // Si falla el mail, puedes decidir borrar usuario+token o dejarlo.
-  // Aquí lo dejo creado pero aviso.
   echo json_encode([
     "success" => true,
     "warning" => "User created, but email could not be sent. Check SMTP config."

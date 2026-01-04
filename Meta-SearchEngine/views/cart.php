@@ -1,15 +1,11 @@
 <?php
-session_start();
-
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');   // /.../public
-$base = preg_replace('#/public$#', '', $base);          // /... (project root)
+$base = $GLOBALS['BASE'] ?? '';
 
 if (empty($_SESSION['user']['id'])) {
-    header("Location: {$base}/public/login.php");
+    header("Location: {$base}/public/index.php?page=login");
     exit;
 }
 
-require __DIR__ . '/topbar.php';
 ?>
 <!DOCTYPE html>
 <html>
@@ -78,7 +74,7 @@ function removeItem(cartId) {
 }
 
 function checkout() {
-  window.location.href = BASE + "/public/checkout.php";
+  window.location.href = BASE + "/public/index.php?page=checkout";
 }
 </script>
 

@@ -37,7 +37,7 @@ function sendVerificationEmailMSE(string $toEmail, string $token): bool {
     // Quitamos /api/auth/register.php:
     $basePath = preg_replace('~/api/auth/register\.php$~', '', $_SERVER['SCRIPT_NAME']);
     // $basePath ahora apunta a la raíz del proyecto (donde cuelgan /public, /api, etc.)
-    $verifyUrl = $protocol . '://' . $host . $basePath . '/public/verify.php?token=' . urlencode($token);
+    $verifyUrl = $protocol . '://' . $host . $basePath . '/public/index.php?page=verify&token=' . urlencode($token);
 
     $mail->isHTML(true);
     $mail->Subject = 'Verify your account - Meta Search Shop';

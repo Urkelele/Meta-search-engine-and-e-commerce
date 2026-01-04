@@ -1,10 +1,12 @@
 <?php
-session_start();
-require __DIR__ . "/topbar.php";
+$base = $GLOBALS['BASE'] ?? '';
 
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-$base = preg_replace('#/public$#', '', $base);
+if (empty($_SESSION['user']['id'])) {
+    header("Location: {$base}/public/index.php?page=home");
+    exit;
+}
 ?>
+
 <h2>Confirm logout</h2>
 <p>Are you sure you want to logout?</p>
 

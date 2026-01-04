@@ -15,36 +15,29 @@ if ($email === "" || $password === "") {
 }
 
 // Fetch user
-$stmt = $conn->prepare("SELECT id, email, password_hash FROM mse_users WHERE email=? LIMIT 1");
+$stmt = $conn->prepare("SELECT id, email, password_hash, is_verified FROM mse_users WHERE email=? LIMIT 1");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-if (!$user) {
+// Check if the user exists and if the password is correct
+if (!$user || !password_verify($password, $user["password_hash"])) {
   echo json_encode(["success" => false, "error" => "Invalid email or password"]);
   exit;
 }
 
-// Verificar password
-if (!password_verify($password, $user["password_hash"])) {
-  echo json_encode(["success" => false, "error" => "Invalid email or password"]);
-  exit;
-}
-
-// 🔐 COMPROBACIÓN CLAVE
+// Check if the user is verified
 if ((int)$user["is_verified"] !== 1) {
-  echo json_encode([
-    "success" => false,
-    "error" => "Please verify your email before logging in"
-  ]);
+  echo json_encode(["success" => false, "error" => "Please verify your email before logging in"]);
   exit;
 }
 
-// ✅ Login OK
+// Loggin successfull
 $_SESSION["user"] = [
-  "id"    => $user["id"],
-  "email" => $user["email"]
+  "id"    => (int)$user["id"],
+  "email" => (string)$user["email"],
 ];
 
 echo json_encode(["success" => true]);
+exit;
