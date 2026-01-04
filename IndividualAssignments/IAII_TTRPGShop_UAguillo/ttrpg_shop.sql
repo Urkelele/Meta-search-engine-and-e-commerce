@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 02-01-2026 a las 19:22:34
+-- Tiempo de generación: 04-01-2026 a las 21:14:54
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -116,15 +116,15 @@ CREATE TABLE `items` (
 --
 
 INSERT INTO `items` (`id`, `category_id`, `name`, `price`, `stock`, `weight`, `shipping_cost`, `description`, `image_path`) VALUES
-(1, 1, 'Books Realm 1', 40.00, 4, 4.00, 6.00, 'Auto-generated description for Books Realm 1.', ''),
+(1, 1, 'Books Realm 1', 40.00, 1, 4.00, 6.00, 'Auto-generated description for Books Realm 1.', ''),
 (2, 1, 'Books Forgotten 2', 75.00, 0, 2.00, 3.00, 'Auto-generated description for Books Forgotten 2.', ''),
-(3, 1, 'Books Arcane 3', 61.00, 15, 5.00, 8.00, 'Auto-generated description for Books Arcane 3.', ''),
+(3, 1, 'Books Arcane 3', 61.00, 13, 5.00, 8.00, 'Auto-generated description for Books Arcane 3.', ''),
 (4, 1, 'Books Forgotten 4', 49.00, 12, 1.00, 9.00, 'Auto-generated description for Books Forgotten 4.', ''),
 (5, 1, 'Books Arcane 5', 8.00, 12, 3.00, 8.00, 'Auto-generated description for Books Arcane 5.', ''),
-(6, 1, 'Books Shadow 6', 19.00, 6, 2.00, 4.00, 'Auto-generated description for Books Shadow 6.', ''),
-(7, 2, 'Dice Sets Eternal 1', 35.00, 9, 4.00, 8.00, 'Auto-generated description for Dice Sets Eternal 1.', ''),
-(8, 2, 'Dice Sets Shadow 2', 13.00, 12, 1.00, 8.00, 'Auto-generated description for Dice Sets Shadow 2.', ''),
-(9, 2, 'Dice Sets Forgotten 3', 33.00, 17, 2.00, 7.00, 'Auto-generated description for Dice Sets Forgotten 3.', ''),
+(6, 1, 'Books Shadow 6', 19.00, 5, 2.00, 4.00, 'Auto-generated description for Books Shadow 6.', ''),
+(7, 2, 'Dice Sets Eternal 1', 35.00, 8, 4.00, 8.00, 'Auto-generated description for Dice Sets Eternal 1.', ''),
+(8, 2, 'Dice Sets Shadow 2', 13.00, 11, 1.00, 8.00, 'Auto-generated description for Dice Sets Shadow 2.', ''),
+(9, 2, 'Dice Sets Forgotten 3', 33.00, 16, 2.00, 7.00, 'Auto-generated description for Dice Sets Forgotten 3.', ''),
 (10, 2, 'Dice Sets Ancient 4', 33.00, 3, 2.00, 3.00, 'Auto-generated description for Dice Sets Ancient 4.', ''),
 (11, 2, 'Dice Sets Eternal 5', 75.00, 19, 2.00, 7.00, 'Auto-generated description for Dice Sets Eternal 5.', ''),
 (12, 2, 'Dice Sets Dragon 6', 24.00, 2, 4.00, 8.00, 'Auto-generated description for Dice Sets Dragon 6.', ''),
@@ -213,7 +213,13 @@ INSERT INTO `orders` (`id`, `user_id`, `date_created`, `status`) VALUES
 (31, 1, '2025-12-30 13:56:26', 'paid'),
 (32, 1, '2025-12-30 14:03:48', 'paid'),
 (33, 1, '2025-12-30 14:03:48', 'paid'),
-(34, 1, '2026-01-02 17:48:32', 'paid');
+(34, 1, '2026-01-02 17:48:32', 'paid'),
+(35, 1, '2026-01-02 19:31:23', 'paid'),
+(36, 1, '2026-01-02 19:31:23', 'paid'),
+(37, 1, '2026-01-02 19:31:47', 'paid'),
+(38, 13, '2026-01-02 20:11:02', 'paid'),
+(39, 13, '2026-01-02 20:11:03', 'paid'),
+(40, 13, '2026-01-04 19:59:11', 'paid');
 
 -- --------------------------------------------------------
 
@@ -270,7 +276,13 @@ INSERT INTO `order_items` (`id`, `order_id`, `item_id`, `quantity`, `purchase_pr
 (34, 31, 9, 1, 33.00),
 (35, 32, 8, 1, 13.00),
 (36, 33, 9, 1, 33.00),
-(37, 34, 4, 1, 49.00);
+(37, 34, 4, 1, 49.00),
+(38, 35, 1, 2, 40.00),
+(39, 36, 3, 1, 61.00),
+(40, 37, 9, 1, 33.00),
+(41, 38, 7, 1, 35.00),
+(42, 39, 8, 1, 13.00),
+(43, 40, 3, 1, 61.00);
 
 -- --------------------------------------------------------
 
@@ -304,7 +316,8 @@ INSERT INTO `users` (`id`, `email`, `password_hash`, `is_admin`, `confirmed`, `c
 (9, 'user8@example.com', '$2y$10$oQ1UvAdeqT/DDgzxJGyrouyRRZbcTgSV211g0k9F8PCywbFqvnZIe', 0, 1, NULL, NULL),
 (10, 'user9@example.com', '$2y$10$NV8pqYb5gRH/m0sas0e2iurKbkgE7SazFyhNoZOV9OBhnnwssTKmC', 0, 1, NULL, NULL),
 (11, 'user10@example.com', '$2y$10$M0p6yXS8MPUTYWO4R9UItuNNCIK80ziqd55w3dcQfM1Fnc6DNDqqG', 0, 1, NULL, NULL),
-(12, 'urkoaguillo@gmail.com', '$2y$10$Co.VAAK5oV9NRMSV/gax1eZNmA4MApRzbvqEU2HHcjYP0XGIqJpnS', 0, 1, NULL, NULL);
+(12, 'urkoaguillo@gmail.com', '$2y$10$Co.VAAK5oV9NRMSV/gax1eZNmA4MApRzbvqEU2HHcjYP0XGIqJpnS', 0, 1, NULL, NULL),
+(13, 'mse@internal', '$2y$10$CFNPdNAOlcBcBYYCzRhIa.g3WTusdoGq3hw95Q.OP9gHF7eEbRR6S', 0, 0, NULL, NULL);
 
 --
 -- Índices para tablas volcadas
@@ -383,19 +396,19 @@ ALTER TABLE `items`
 -- AUTO_INCREMENT de la tabla `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT de la tabla `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- Restricciones para tablas volcadas

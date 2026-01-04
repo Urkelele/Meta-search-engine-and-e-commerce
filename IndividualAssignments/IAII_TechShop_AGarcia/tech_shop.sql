@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 02-01-2026 a las 19:21:57
+-- Tiempo de generación: 04-01-2026 a las 21:15:26
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -177,7 +177,11 @@ INSERT INTO `orders` (`order_id`, `user_id`, `total_price`, `status`, `created_a
 (49, 17, 1160.50, 'shipped', '2025-12-19 02:08:26'),
 (50, 19, 779.00, 'paid', '2025-12-19 02:08:26'),
 (51, 34, 192.00, 'paid', '2026-01-02 16:48:32'),
-(52, 34, 211.00, 'paid', '2026-01-02 16:48:32');
+(52, 34, 211.00, 'paid', '2026-01-02 16:48:32'),
+(53, 34, 218.00, 'paid', '2026-01-02 18:31:47'),
+(54, 34, 179.00, 'paid', '2026-01-02 18:31:47'),
+(55, 34, 83.00, 'paid', '2026-01-02 19:12:11'),
+(56, 34, 212.00, 'paid', '2026-01-02 19:12:11');
 
 -- --------------------------------------------------------
 
@@ -336,7 +340,11 @@ INSERT INTO `order_items` (`order_item_id`, `order_id`, `product_id`, `quantity`
 (136, 50, 29, 2, 36.00),
 (137, 50, 24, 2, 147.00),
 (138, 51, 33, 1, 192.00),
-(139, 52, 35, 1, 211.00);
+(139, 52, 35, 1, 211.00),
+(140, 53, 43, 1, 218.00),
+(141, 54, 32, 1, 179.00),
+(142, 55, 25, 1, 83.00),
+(143, 56, 21, 1, 212.00);
 
 -- --------------------------------------------------------
 
@@ -381,18 +389,18 @@ INSERT INTO `products` (`product_id`, `name`, `category_id`, `description`, `cre
 (18, 'Product 337', 1, 'Auto generated product description', '2025-12-19 02:08:25', 209.00, 3.00, 40, 0),
 (19, 'Product 838', 2, 'Auto generated product description', '2025-12-19 02:08:25', 235.00, 16.00, 11, 0),
 (20, 'Product 582', 2, 'Auto generated product description', '2025-12-19 02:08:25', 88.00, 10.00, 27, 0),
-(21, 'Product 930', 4, 'Auto generated product description', '2025-12-19 02:08:25', 212.00, 20.00, 13, 0),
+(21, 'Product 930', 4, 'Auto generated product description', '2025-12-19 02:08:25', 212.00, 20.00, 12, 0),
 (22, 'Product 251', 3, 'Auto generated product description', '2025-12-19 02:08:25', 28.00, 9.00, 21, 0),
 (23, 'Product 409', 3, 'Auto generated product description', '2025-12-19 02:08:25', 99.00, 20.00, 17, 0),
 (24, 'Product 482', 1, 'Auto generated product description', '2025-12-19 02:08:25', 147.00, 19.00, 25, 0),
-(25, 'Product 678', 1, 'Auto generated product description', '2025-12-19 02:08:25', 83.00, 11.00, 32, 0),
+(25, 'Product 678', 1, 'Auto generated product description', '2025-12-19 02:08:25', 83.00, 11.00, 31, 0),
 (26, 'Product 302', 4, 'Auto generated product description', '2025-12-19 02:08:25', 64.00, 6.00, 45, 0),
 (27, 'Product 349', 1, 'Auto generated product description', '2025-12-19 02:08:25', 143.00, 17.00, 49, 0),
 (28, 'Product 228', 3, 'Auto generated product description', '2025-12-19 02:08:25', 241.00, 6.00, 15, 0),
 (29, 'Product 377', 4, 'Auto generated product description', '2025-12-19 02:08:26', 36.00, 14.00, 47, 0),
 (30, 'Product 835', 3, 'Auto generated product description', '2025-12-19 02:08:26', 241.00, 16.00, 35, 0),
 (31, 'Product 637', 2, 'Auto generated product description', '2025-12-19 02:08:26', 157.00, 17.00, 24, 0),
-(32, 'Product 698', 1, 'Auto generated product description', '2025-12-19 02:08:26', 179.00, 7.00, 35, 0),
+(32, 'Product 698', 1, 'Auto generated product description', '2025-12-19 02:08:26', 179.00, 7.00, 34, 0),
 (33, 'Product 117', 2, 'Auto generated product description', '2025-12-19 02:08:26', 192.00, 8.00, 6, 0),
 (34, 'Product 558', 4, 'Auto generated product description', '2025-12-19 02:08:26', 131.00, 14.00, 13, 0),
 (35, 'Product 278', 1, 'Auto generated product description', '2025-12-19 02:08:26', 211.00, 11.00, 16, 0),
@@ -403,7 +411,7 @@ INSERT INTO `products` (`product_id`, `name`, `category_id`, `description`, `cre
 (40, 'Product 706', 4, 'Auto generated product description', '2025-12-19 02:08:26', 189.00, 8.00, 48, 0),
 (41, 'Product 610', 3, 'Auto generated product description', '2025-12-19 02:08:26', 237.00, 16.00, 20, 0),
 (42, 'Product 317', 2, 'Auto generated product description', '2025-12-19 02:08:26', 253.00, 4.00, 19, 0),
-(43, 'Product 338', 4, 'Auto generated product description', '2025-12-19 02:08:26', 218.00, 12.00, 10, 0),
+(43, 'Product 338', 4, 'Auto generated product description', '2025-12-19 02:08:26', 218.00, 12.00, 9, 0),
 (44, 'Product 582', 2, 'Auto generated product description', '2025-12-19 02:08:26', 116.00, 11.00, 5, 0);
 
 -- --------------------------------------------------------
@@ -593,7 +601,7 @@ CREATE TABLE `tokens` (
 CREATE TABLE `users` (
   `user_id` int(32) UNSIGNED NOT NULL,
   `email` varchar(128) NOT NULL,
-  `password` varchar(128) NOT NULL,
+  `password_hash` varchar(128) NOT NULL,
   `name` varchar(128) NOT NULL,
   `is_verified` tinyint(1) NOT NULL DEFAULT 0,
   `is_admin` tinyint(1) NOT NULL DEFAULT 0,
@@ -604,7 +612,7 @@ CREATE TABLE `users` (
 -- Volcado de datos para la tabla `users`
 --
 
-INSERT INTO `users` (`user_id`, `email`, `password`, `name`, `is_verified`, `is_admin`, `created_at`) VALUES
+INSERT INTO `users` (`user_id`, `email`, `password_hash`, `name`, `is_verified`, `is_admin`, `created_at`) VALUES
 (1, 'alu.140009@usj.es', '$2y$10$uwvhh1idPVVnyEV8YxPoROFbUB/jcKkVTNizsWuO9Zxqn6V6rcotK', 'Alvaro', 1, 0, '2025-12-19 02:59:59'),
 (2, 'algarse04@gmail.com', '$2y$10$wNKME03KEu8kCOK7EsF13OlFUyT.0XdkU7ZIYyGnboLLuz2a2szPu', 'AlvaroAdmin', 1, 1, '2025-12-19 03:05:06'),
 (3, 'user6212@mail.com', '$2y$10$IYH3sUE1CVCLISgQWQIw8un0DXqbuwRf1IABZqgS.01PAwmQ85tZe', 'Carlos', 1, 0, '2025-12-19 03:08:24'),
@@ -752,13 +760,13 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT de la tabla `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(32) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `order_id` int(32) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
 -- AUTO_INCREMENT de la tabla `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `order_item_id` int(32) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=140;
+  MODIFY `order_item_id` int(32) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=144;
 
 --
 -- AUTO_INCREMENT de la tabla `products`
