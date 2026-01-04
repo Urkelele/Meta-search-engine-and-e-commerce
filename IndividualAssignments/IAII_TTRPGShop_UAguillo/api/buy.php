@@ -22,16 +22,14 @@ if ($item_id <= 0 || $quantity <= 0) {
     exit;
 }
 
-/**
- * 1) Asegurar que existe un usuario interno “MSE”
- */
+// MSE internal user credentials
 $MSE_EMAIL = "mse@internal";
 $MSE_PASS  = password_hash("mse_internal_password", PASSWORD_BCRYPT);
 
 $conn->begin_transaction();
 
 try {
-    // Buscar usuario MSE
+    // Obtain or create internal MSE USER
     $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
     $stmt->bind_param("s", $MSE_EMAIL);
     $stmt->execute();
@@ -42,7 +40,6 @@ try {
     if ($row) {
         $SYSTEM_USER_ID = (int)$row['id'];
     } else {
-        // Crear usuario MSE
         $stmt = $conn->prepare("INSERT INTO users (email, password_hash) VALUES (?, ?)");
         $stmt->bind_param("ss", $MSE_EMAIL, $MSE_PASS);
         $stmt->execute();
@@ -50,9 +47,7 @@ try {
         $stmt->close();
     }
 
-    /**
-     * 2) Obtener precio del item
-     */
+    // check item price
     $stmt = $conn->prepare("SELECT price FROM items WHERE id = ?");
     $stmt->bind_param("i", $item_id);
     $stmt->execute();
@@ -65,18 +60,14 @@ try {
 
     $price = (float)$row['price'];
 
-    /**
-     * 3) Crear order
-     */
+    // create order
     $stmt = $conn->prepare("INSERT INTO orders (user_id, status) VALUES (?, 'paid')");
     $stmt->bind_param("i", $SYSTEM_USER_ID);
     $stmt->execute();
     $order_id = (int)$conn->insert_id;
     $stmt->close();
 
-    /**
-     * 4) Insertar order item
-     */
+    // create order item
     $stmt = $conn->prepare("
         INSERT INTO order_items (order_id, item_id, quantity, purchase_price)
         VALUES (?, ?, ?, ?)

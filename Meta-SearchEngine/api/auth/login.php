@@ -14,13 +14,8 @@ if ($email === "" || $password === "") {
   exit;
 }
 
-// Buscar usuario
-$stmt = $conn->prepare("
-  SELECT id, email, password_hash, is_verified
-  FROM mse_users
-  WHERE email = ?
-  LIMIT 1
-");
+// Fetch user
+$stmt = $conn->prepare("SELECT id, email, password_hash FROM mse_users WHERE email=? LIMIT 1");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();

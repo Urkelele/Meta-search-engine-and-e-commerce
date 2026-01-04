@@ -1,9 +1,8 @@
 <?php
-// mse/api/orders.php
 session_start();
 header("Content-Type: application/json; charset=utf-8");
 
-require __DIR__ . "/../includes/db.php";      // $conn (mysqli)
+require __DIR__ . "/../includes/db.php";
 $ias = require __DIR__ . "/../includes/ia_config.php";
 
 $userId = (int)($_SESSION['user']['id'] ?? 0);
@@ -13,7 +12,7 @@ if (!$userId) {
     exit;
 }
 
-// 1) obtener pedidos + items de la BD
+// get all orders and their items
 $sql = "
     SELECT o.id AS order_id, o.created_at, o.status,
            i.ia_name, i.ia_item_id, i.quantity, i.price_at_purchase, i.ia_order_ref
@@ -39,7 +38,7 @@ if (!$rows) {
     exit;
 }
 
-// 2) función para obtener nombre del item desde la IA
+// fetch item name from IA
 function fetchItemName($iaName, $itemId, $ias) {
     if (!isset($ias[$iaName])) return "Unknown IA";
 
@@ -63,8 +62,8 @@ function fetchItemName($iaName, $itemId, $ias) {
     return $item['name'] ?? "Unnamed item";
 }
 
-// 3) agrupar por pedido y añadir nombre de item
-$orders = [];  // order_id => [order_id, created_at, items => []]
+// organize orders 
+$orders = [];
 
 foreach ($rows as $r) {
     $oid = $r['order_id'];
@@ -90,8 +89,8 @@ foreach ($rows as $r) {
     ];
 }
 
-// 4) devolver JSON
+// return orders
 echo json_encode([
     "success" => true,
-    "orders"  => array_values($orders) // para que sea un array plano
+    "orders"  => array_values($orders)
 ]);

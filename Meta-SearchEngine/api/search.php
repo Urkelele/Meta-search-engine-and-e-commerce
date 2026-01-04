@@ -4,12 +4,10 @@ header("Content-Type: application/json; charset=utf-8");
 $ias = require __DIR__ . "/../includes/ia_config.php";
 
 $q           = trim($_GET['q'] ?? "");
-$category    = trim($_GET['category'] ?? "");     // string (ej: "Keyboard", "Books")
-$subcategory = trim($_GET['subcategory'] ?? "");  // string (ej: "Mechanical", "Galaxy", "format:PDF")
+$category    = trim($_GET['category'] ?? "");
+$subcategory = trim($_GET['subcategory'] ?? "");
 
-// --------------------------------------------------
-// Helpers
-// --------------------------------------------------
+// general IA GET helper
 function ia_get(string $url, string $apiKey, int &$http = null): array {
   $ch = curl_init($url);
   curl_setopt_array($ch, [
@@ -28,12 +26,11 @@ function ia_get(string $url, string $apiKey, int &$http = null): array {
   return is_array($json) ? $json : ["success" => false, "error" => "Invalid JSON", "_raw" => $raw];
 }
 
-// Normaliza properties para que siempre sea array de strings:
+// Normalize properties to array of strings
 // - TechShop: ["Mechanical","RGB"]
 // - TTRPG: {"material":"Acrylic","theme":"Galaxy"}  -> ["material:Acrylic","theme:Galaxy"]
 function normalize_properties($props): array {
   if (is_array($props)) {
-    // array asociativo
     $isAssoc = array_keys($props) !== range(0, count($props) - 1);
     if ($isAssoc) {
       $out = [];
@@ -43,7 +40,6 @@ function normalize_properties($props): array {
       }
       return $out;
     }
-    // array normal
     $out = [];
     foreach ($props as $v) {
       if ($v === null || $v === '') continue;
@@ -54,9 +50,7 @@ function normalize_properties($props): array {
   return [];
 }
 
-// --------------------------------------------------
-// 1) Buscar en las IAs (lista base)
-// --------------------------------------------------
+// search on all IAs
 $rawItems = [];
 foreach ($ias as $ia_name => $ia) {
   $url = rtrim($ia['base_url'], "/") . "/search.php?q=" . urlencode($q);
@@ -77,18 +71,14 @@ foreach ($ias as $ia_name => $ia) {
       "stock"    => (int)($item['stock'] ?? 0),
       "category" => (string)($item['category'] ?? ''),
       "image"    => (string)($item['image'] ?? ''),
-      // properties se rellena después si hace falta
+      // properties will be filled later if needed
     ];
   }
 }
 
-// --------------------------------------------------
-// 2) Construir META: categorías + subcategorías por categoría
-//    (para pintar los <select> en el index)
-// --------------------------------------------------
+// build categories and subcategories info
 $categoriesSet = [];
-$subcatsByCat  = []; // ["Keyboard" => ["Mechanical","Wireless",...], "Books"=>["system:D&D 5e",...]]
-// Para evitar demasiadas llamadas, hacemos item.php solo para una muestra por categoría
+$subcatsByCat  = [];
 $seenCatCount = [];
 
 foreach ($rawItems as $it) {
@@ -101,7 +91,7 @@ foreach ($rawItems as $it) {
   if ($cat === "") continue;
 
   $seenCatCount[$cat] = ($seenCatCount[$cat] ?? 0) + 1;
-  if ($seenCatCount[$cat] > 12) continue; // límite por categoría (ajústalo si quieres)
+  if ($seenCatCount[$cat] > 12) continue; // performance limit
 
   $ia_conf = $ias[$it["ia"]];
   $itemUrl = rtrim($ia_conf["base_url"], "/") . "/item.php?id=" . urlencode((string)$it["item_id"]);
@@ -117,7 +107,7 @@ foreach ($rawItems as $it) {
   }
 }
 
-// normaliza meta arrays
+// normalize arrays
 $categories = array_keys($categoriesSet);
 sort($categories, SORT_NATURAL | SORT_FLAG_CASE);
 
@@ -128,9 +118,7 @@ foreach ($subcatsByCat as $cat => $set) {
   $subcatsByCatOut[$cat] = $arr;
 }
 
-// --------------------------------------------------
-// 3) Aplicar filtros (category/subcategory)
-// --------------------------------------------------
+// filter by category and subcategory
 $filtered = [];
 foreach ($rawItems as $it) {
   if ($category !== "" && strcasecmp($it["category"], $category) !== 0) {
@@ -138,7 +126,7 @@ foreach ($rawItems as $it) {
   }
 
   if ($subcategory !== "") {
-    // necesitamos properties reales para este item
+    // fetch properties if not already done
     $ia_conf = $ias[$it["ia"]];
     $itemUrl = rtrim($ia_conf["base_url"], "/") . "/item.php?id=" . urlencode((string)$it["item_id"]);
 
@@ -151,7 +139,6 @@ foreach ($rawItems as $it) {
     $props = normalize_properties($full["item"]["properties"] ?? []);
     $it["properties"] = $props;
 
-    // match exact (case-insensitive) sobre el string
     $match = false;
     foreach ($props as $p) {
       if (strcasecmp($p, $subcategory) === 0) { $match = true; break; }

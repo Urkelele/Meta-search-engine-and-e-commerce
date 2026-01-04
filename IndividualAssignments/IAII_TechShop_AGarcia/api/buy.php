@@ -20,9 +20,7 @@ if ($item_id <= 0) {
 $db->begin_transaction();
 
 try {
-  // ---------------------------------------------------------
-  // 1) Lock product + check reserved stock
-  // ---------------------------------------------------------
+  // Reserve stock check
   $stmt = $db->prepare("
     SELECT product_id, price, reserved_stock
     FROM products
@@ -47,9 +45,7 @@ try {
   $unitPrice = (float)$p["price"];
   $total = $unitPrice * $qty;
 
-  // ---------------------------------------------------------
-  // 2) Ensure INTERNAL MSE USER exists
-  // ---------------------------------------------------------
+  // Check or create INTERNAL MSE USER
   $systemEmail = "mse@system.local";
 
   $u = $db->prepare("SELECT user_id FROM users WHERE email = ? LIMIT 1");
@@ -77,9 +73,7 @@ try {
     $systemUserId = (int)$ur["user_id"];
   }
 
-  // ---------------------------------------------------------
-  // 3) Create order for INTERNAL MSE USER
-  // ---------------------------------------------------------
+  // Create order
   $status = "paid";
 
   $o = $db->prepare("
@@ -91,9 +85,7 @@ try {
   $orderId = (int)$db->insert_id;
   $o->close();
 
-  // ---------------------------------------------------------
-  // 4) Create order_item
-  // ---------------------------------------------------------
+  // Insert order item
   $oi = $db->prepare("
     INSERT INTO order_items (order_id, product_id, quantity, price)
     VALUES (?, ?, ?, ?)
@@ -102,9 +94,7 @@ try {
   $oi->execute();
   $oi->close();
 
-  // ---------------------------------------------------------
-  // 5) Consume reservation
-  // ---------------------------------------------------------
+  // Decrease reserved stock
   $up = $db->prepare("
     UPDATE products
     SET reserved_stock = reserved_stock - ?
@@ -114,9 +104,6 @@ try {
   $up->execute();
   $up->close();
 
-  // ---------------------------------------------------------
-  // 6) Commit
-  // ---------------------------------------------------------
   $db->commit();
 
   echo json_encode([

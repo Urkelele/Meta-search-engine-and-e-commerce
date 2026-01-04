@@ -19,9 +19,11 @@ if ($item_id <= 0) {
     exit;
 }
 
+// Release reserved stock
 $db->begin_transaction();
 
 try {
+    // Check current reserved stock
     $stmt = $db->prepare("SELECT reserved_stock FROM products WHERE product_id = ? FOR UPDATE");
     $stmt->bind_param("i", $item_id);
     $stmt->execute();
@@ -31,6 +33,7 @@ try {
         throw new Exception("Not enough reserved stock to release");
     }
 
+    // Update stock values
     $upd = $db->prepare("
         UPDATE products
         SET available_stock = available_stock + ?,

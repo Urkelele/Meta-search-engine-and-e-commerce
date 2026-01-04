@@ -17,9 +17,6 @@ if ($ia === "" || $id <= 0 || !isset($ias[$ia])) {
 
 $ia_conf = $ias[$ia];
 
-// --------------------------------------------------
-// Helpers
-// --------------------------------------------------
 function ia_get_json(string $url, string $apiKey, int &$httpCode = null): array {
   $ch = curl_init($url);
   curl_setopt_array($ch, [
@@ -41,7 +38,7 @@ function ia_get_json(string $url, string $apiKey, int &$httpCode = null): array 
 
 function absolutize_url(string $baseUrl, string $path): string {
   if ($path === "") return "";
-  if (preg_match('~^https?://~i', $path)) return $path; // ya absoluta
+  if (preg_match('~^https?://~i', $path)) return $path;
   $parts = parse_url($baseUrl);
   $scheme = $parts["scheme"] ?? "http";
   $host = $parts["host"] ?? "";
@@ -57,40 +54,33 @@ function ia_public_root(string $baseUrl): string {
 
 function join_ia_path(string $baseUrl, string $path): string {
   if ($path === "") return "";
-  if (preg_match('~^https?://~i', $path)) return $path; // ya absoluta
+  if (preg_match('~^https?://~i', $path)) return $path;
 
   $parts  = parse_url($baseUrl);
   $scheme = $parts["scheme"] ?? "http";
   $host   = $parts["host"] ?? "localhost";
   $port   = isset($parts["port"]) ? ":" . $parts["port"] : "";
 
-  // Prefijo del proyecto = todo lo que haya antes de /IndividualAssignments/
-  // Ej: /Meta-search-engine-and-e-commerce/
+  // /Meta-search-engine-and-e-commerce/
   $basePath = $parts["path"] ?? "/";
   $projectPrefix = "";
   if (preg_match('~^(.*?/)?IndividualAssignments/.*$~', $basePath)) {
-    // extrae "/Meta-search-engine-and-e-commerce/"
     $projectPrefix = preg_replace('~(.*?/)?IndividualAssignments/.*$~', '$1', $basePath);
     if ($projectPrefix === $basePath) $projectPrefix = "";
   }
 
-  // Si path ya empieza por "/Meta-search-engine-and-e-commerce/..." no lo volvemos a añadir
   if ($projectPrefix !== "" && str_starts_with($path, $projectPrefix)) {
     return $scheme . "://" . $host . $port . $path;
   }
 
-  // Si path empieza por "/IndividualAssignments/..." entonces añadimos el prefijo
   if ($projectPrefix !== "" && str_starts_with($path, "/IndividualAssignments/")) {
     return $scheme . "://" . $host . $port . rtrim($projectPrefix, "/") . $path;
   }
 
-  // fallback: pegar tal cual al host
   return $scheme . "://" . $host . $port . $path;
 }
 
-// --------------------------------------------------
-// Call IA item.php
-// --------------------------------------------------
+// fetch item details from IA
 $itemUrl = rtrim($ia_conf["base_url"], "/") . "/item.php?id=" . urlencode((string)$id);
 $http = 0;
 $resp = ia_get_json($itemUrl, $ia_conf["api_key"], $http);

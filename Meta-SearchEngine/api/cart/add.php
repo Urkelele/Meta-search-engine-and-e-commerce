@@ -2,10 +2,9 @@
 session_start();
 header("Content-Type: application/json; charset=utf-8");
 
-require __DIR__ . "/../../includes/db.php";      // debe definir $conn (mysqli)
+require __DIR__ . "/../../includes/db.php";
 $ias = require __DIR__ . "/../../includes/ia_config.php";
 
-// Auth
 $userId = (int)($_SESSION['user']['id'] ?? 0);
 if (!$userId) {
   http_response_code(401);
@@ -13,7 +12,6 @@ if (!$userId) {
   exit;
 }
 
-// Input
 $data = json_decode(file_get_contents("php://input"), true) ?: [];
 $ia       = $data["ia"] ?? "";
 $itemId   = (int)($data["item_id"] ?? 0);
@@ -32,7 +30,7 @@ if (!isset($ias[$ia])) {
 
 $ia_conf = $ias[$ia];
 
-// 1) Reservar stock en IA
+// Reserv stock en IA
 $url = $ia_conf["base_url"] . "reserve.php";
 $payload = json_encode(["item_id"=>$itemId, "quantity"=>$quantity]);
 
@@ -63,8 +61,6 @@ if ($http !== 200) {
   exit;
 }
 
-// 2) Guardar/actualizar en carrito MSE
-// Si ya existe el mismo item (user+ia+ia_item_id), sumamos quantity
 $stmt = $conn->prepare("
   SELECT id, quantity
   FROM mse_carts
@@ -76,6 +72,7 @@ $stmt->execute();
 $existing = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
+// Insert or update
 if ($existing) {
   $newQty = (int)$existing["quantity"] + $quantity;
   $stmt = $conn->prepare("UPDATE mse_carts SET quantity=?, created_at=CURDATE() WHERE id=?");

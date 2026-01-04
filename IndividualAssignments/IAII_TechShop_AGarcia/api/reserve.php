@@ -20,6 +20,7 @@ if ($item_id <= 0) {
 
 $db->begin_transaction();
 try {
+  // Check current available stock
   $stmt = $db->prepare("SELECT available_stock FROM products WHERE product_id = ? FOR UPDATE");
   $stmt->bind_param("i", $item_id);
   $stmt->execute();
@@ -29,6 +30,7 @@ try {
     throw new Exception("Not enough stock");
   }
 
+  // Update stock values
   $upd = $db->prepare("
     UPDATE products
     SET available_stock = available_stock - ?,

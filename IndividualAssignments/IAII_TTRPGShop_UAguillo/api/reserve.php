@@ -25,6 +25,7 @@ if ($item_id <= 0 || $quantity <= 0) {
 $conn->begin_transaction();
 
 try {
+    // Check current available stock
     $stmt = $conn->prepare("SELECT stock FROM items WHERE id = ? FOR UPDATE");
     $stmt->bind_param("i", $item_id);
     $stmt->execute();
@@ -44,6 +45,7 @@ try {
         exit;
     }
 
+    // Reserve stock
     $upd = $conn->prepare("UPDATE items SET stock = stock - ? WHERE id = ?");
     $upd->bind_param("ii", $quantity, $item_id);
     $upd->execute();

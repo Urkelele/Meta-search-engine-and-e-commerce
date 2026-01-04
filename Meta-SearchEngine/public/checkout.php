@@ -7,7 +7,7 @@ if (empty($_SESSION['user']['id'])) {
 
 require __DIR__ . "/topbar.php";
 $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');  // /.../public
-$base = preg_replace('#/public$#', '', $base);         // /... (raíz proyecto)
+$base = preg_replace('#/public$#', '', $base);         // /... (project root)
 ?>
 <!doctype html>
 <html>
@@ -70,7 +70,7 @@ document.getElementById("payForm").addEventListener("submit", async (e) => {
     return;
   }
 
-  // OK -> volver a index
+  // OK, return to index
   window.location.href = BASE + "/public/index.php?paid=1&order_id=" + data.order_id;
 });
 </script>

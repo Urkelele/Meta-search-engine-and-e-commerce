@@ -2,9 +2,17 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require __DIR__ . "/../PHPMailer/src/Exception.php";
-require __DIR__ . "/../PHPMailer/src/PHPMailer.php";
-require __DIR__ . "/../PHPMailer/src/SMTP.php";
+require __DIR__ . '/../PHPMailer/src/Exception.php';
+require __DIR__ . '/../PHPMailer/src/PHPMailer.php';
+require __DIR__ . '/../PHPMailer/src/SMTP.php';
+
+function mse_base_url(): string {
+  $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+  $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+
+  $path = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\'); // /.../public
+  return $protocol . '://' . $host . $path;
+}
 
 function sendVerificationEmailMSE(string $toEmail, string $token): bool {
   $mail = new PHPMailer(true);

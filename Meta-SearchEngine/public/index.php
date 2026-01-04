@@ -2,9 +2,8 @@
 session_start();
 require __DIR__ . '/topbar.php';
 
-// Calcula BASE como hicimos antes (para poder redirigir/llamar rutas bien)
 $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');  // /.../public
-$base = preg_replace('#/public$#', '', $base);         // /... (raíz proyecto)
+$base = preg_replace('#/public$#', '', $base);         // /... (project root)
 ?>
 <!DOCTYPE html>
 <html>
@@ -58,11 +57,10 @@ async function refreshCartCount() {
     const el = document.getElementById("cartCount");
     if (!el) return;
 
-    // ✅ mejor: sumar cantidades (si existe quantity)
     const totalQty = (data.items || []).reduce((acc, it) => acc + (parseInt(it.quantity || 1, 10)), 0);
     el.textContent = totalQty;
   } catch (e) {
-    // silencioso
+    // fail silently
   }
 }
 
@@ -113,7 +111,7 @@ function fillCategories(meta, selectedCat) {
       `<option value="${encodeURIComponent(c)}">${c}</option>`
     ).join("");
 
-  // restaurar selección
+  // restore previous selection if any
   if (selectedCat) sel.value = encodeURIComponent(selectedCat);
   else if (keep) sel.value = keep;
 }
@@ -150,10 +148,9 @@ async function loadProducts() {
     return;
   }
 
-  // Rellenar selects con meta
   fillCategories(data.meta, category);
 
-  // Subcats dependen de la categoría seleccionada
+  // subcategories dependent on selected category
   const currentCat = (document.getElementById("category").value)
     ? decodeURIComponent(document.getElementById("category").value)
     : "";
@@ -163,31 +160,30 @@ async function loadProducts() {
   renderItems(data.items || []);
 }
 
-// submit manual
+// submit search form
 document.getElementById("searchForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   await loadProducts();
 });
 
-// auto-filtrar al cambiar categoría (como pediste)
+// auto-filter changing category
 document.getElementById("category").addEventListener("change", async () => {
   // reset subcat
   document.getElementById("subcategory").value = "";
   await loadProducts();
 });
 
-// auto-filtrar al cambiar subcategoría
+// auto-filter changing subcategory
 document.getElementById("subcategory").addEventListener("change", async () => {
   await loadProducts();
 });
 
-// cargar todo al entrar
+// on load
 document.addEventListener("DOMContentLoaded", () => {
   loadProducts();
-  refreshCartCount(); // ✅ por si el topbar tarda o falla
+  refreshCartCount();
 });
 
-// tu addToCart igual que lo tienes
 async function addToCart(ia, itemId, qty = 1) {
   const r = await fetch(BASE + "/api/cart/add.php", {
     method: "POST",
@@ -208,9 +204,9 @@ async function addToCart(ia, itemId, qty = 1) {
     return;
   }
 
-  showToast("Added to cart ✅");
+  showToast("Added to cart");
 
-  // ✅ ACTUALIZA topbar
+  // topbar refresh
   await refreshCartCount();
 }
 </script>
