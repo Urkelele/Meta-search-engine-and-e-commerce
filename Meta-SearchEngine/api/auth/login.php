@@ -1,18 +1,16 @@
 <?php
+session_start();
 header("Content-Type: application/json; charset=utf-8");
-require_once __DIR__ . "/../../includes/db.php";
-require_once __DIR__ . "/../../includes/session.php";
 
-
+require __DIR__ . "/../../includes/db.php";
 $conn = db();
-$data = json_decode(file_get_contents("php://input"), true) ?: [];
 
+$data = json_decode(file_get_contents("php://input"), true);
 $email = trim($data["email"] ?? "");
-$pass  = (string)($data["password"] ?? "");
+$password = $data["password"] ?? "";
 
-if ($email === "" || $pass === "") {
-  http_response_code(400);
-  echo json_encode(["success"=>false, "error"=>"Missing fields"]);
+if ($email === "" || $password === "") {
+  echo json_encode(["success" => false, "error" => "Missing credentials"]);
   exit;
 }
 
@@ -23,12 +21,30 @@ $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-if (!$user || !password_verify($pass, $user["password_hash"])) {
-  http_response_code(401);
-  echo json_encode(["success"=>false, "error"=>"Invalid credentials"]);
+if (!$user) {
+  echo json_encode(["success" => false, "error" => "Invalid email or password"]);
   exit;
 }
 
-login_user((int)$user["id"], $user["email"]);
+// Verificar password
+if (!password_verify($password, $user["password_hash"])) {
+  echo json_encode(["success" => false, "error" => "Invalid email or password"]);
+  exit;
+}
 
-echo json_encode(["success"=>true, "user"=>["id"=>(int)$user["id"], "email"=>$user["email"]]]);
+// 🔐 COMPROBACIÓN CLAVE
+if ((int)$user["is_verified"] !== 1) {
+  echo json_encode([
+    "success" => false,
+    "error" => "Please verify your email before logging in"
+  ]);
+  exit;
+}
+
+// ✅ Login OK
+$_SESSION["user"] = [
+  "id"    => $user["id"],
+  "email" => $user["email"]
+];
+
+echo json_encode(["success" => true]);
